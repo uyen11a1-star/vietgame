@@ -786,3 +786,152 @@ test("unified input dem chinh xac nhieu nut va nhieu ngon tay", () => {
   assert.equal(game.getInputCount(), 3);
   game.destroy();
 });
+
+function createImageIntegrationCanvas() {
+  const calls = [];
+
+  const ctx = {
+    fillStyle: "",
+    font: "",
+    fillRect() {},
+    beginPath() {},
+    arc() {},
+    fill() {},
+    fillText() {},
+    drawImage(...args) {
+      calls.push(args);
+    }
+  };
+
+  return {
+    width: 0,
+    height: 0,
+    calls,
+    getContext(type) {
+      return type === "2d" ? ctx : null;
+    }
+  };
+}
+
+function createImageIntegrationFactory() {
+  const created = [];
+
+  return {
+    created,
+    imageFactory() {
+      const image = {
+        src: "",
+        onload: null,
+        onerror: null
+      };
+
+      created.push(image);
+      return image;
+    }
+  };
+}
+
+test("VietGame2D dang ky hinh anh", () => {
+  const canvas = createImageIntegrationCanvas();
+  const factory = createImageIntegrationFactory();
+  const game = new VietGame2D(canvas, {
+    imageFactory: factory.imageFactory
+  });
+
+  game.dangKyHinhAnh("player", "player.png");
+
+  assert.equal(factory.created.length, 1);
+  assert.equal(factory.created[0].src, "player.png");
+
+  game.destroy();
+});
+
+test("VietGame2D kiem tra trang thai tai hinh anh", () => {
+  const factory = createImageIntegrationFactory();
+  const game = new VietGame2D(createImageIntegrationCanvas(), {
+    imageFactory: factory.imageFactory
+  });
+
+  game.dangKyHinhAnh("player", "player.png");
+
+  assert.equal(game.hinhAnhDaTai("player"), false);
+
+  factory.created[0].onload();
+
+  assert.equal(game.hinhAnhDaTai("player"), true);
+
+  game.destroy();
+});
+
+test("VietGame2D ve hinh anh len Canvas", () => {
+  const canvas = createImageIntegrationCanvas();
+  const factory = createImageIntegrationFactory();
+  const game = new VietGame2D(canvas, {
+    imageFactory: factory.imageFactory
+  });
+
+  game.dangKyHinhAnh("player", "player.png");
+  factory.created[0].onload();
+
+  assert.equal(game.veHinhAnh("player", 10, 20), true);
+  assert.deepEqual(canvas.calls[0], [
+    factory.created[0], 10, 20
+  ]);
+
+  game.destroy();
+});
+
+test("VietGame2D ve hinh anh voi kich thuoc tuy chinh", () => {
+  const canvas = createImageIntegrationCanvas();
+  const factory = createImageIntegrationFactory();
+  const game = new VietGame2D(canvas, {
+    imageFactory: factory.imageFactory
+  });
+
+  game.dangKyHinhAnh("player", "player.png");
+  factory.created[0].onload();
+
+  assert.equal(
+    game.veHinhAnhCoKichThuoc("player", 10, 20, 100, 80),
+    true
+  );
+
+  assert.deepEqual(canvas.calls[0], [
+    factory.created[0], 10, 20, 100, 80
+  ]);
+
+  game.destroy();
+});
+
+test("VietGame2D khong ve hinh anh chua tai", () => {
+  const canvas = createImageIntegrationCanvas();
+  const factory = createImageIntegrationFactory();
+  const game = new VietGame2D(canvas, {
+    imageFactory: factory.imageFactory
+  });
+
+  game.dangKyHinhAnh("player", "player.png");
+
+  assert.equal(game.veHinhAnh("player", 10, 20), false);
+  assert.equal(canvas.calls.length, 0);
+
+  game.destroy();
+});
+
+test("destroy VietGame2D giai phong Image Engine", () => {
+  const factory = createImageIntegrationFactory();
+  const game = new VietGame2D(createImageIntegrationCanvas(), {
+    imageFactory: factory.imageFactory
+  });
+
+  game.dangKyHinhAnh("player", "player.png");
+
+  const image = factory.created[0];
+
+  game.destroy();
+
+  assert.equal(image.onload, null);
+  assert.equal(image.onerror, null);
+  assert.equal(image.src, "");
+});
+

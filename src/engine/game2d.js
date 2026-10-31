@@ -1,4 +1,5 @@
 import { VietGameAudio } from "./audio.js";
+import { VietGameImage } from "./image.js";
 
 export class VietGame2D {
   constructor(canvas, options = {}) {
@@ -9,6 +10,7 @@ export class VietGame2D {
     this.canvas = canvas;
     this.ctx = canvas.getContext("2d");
     this.audio = new VietGameAudio({ audioFactory: options.audioFactory });
+    this.image = new VietGameImage({ imageFactory: options.imageFactory });
 
     if (!this.ctx) {
       throw new Error("VietGame: Khong the tao Canvas 2D context.");
@@ -366,6 +368,24 @@ export class VietGame2D {
     return this.audio.setVolume(value);
   }
 
+  dangKyHinhAnh(name, src) {
+    return this.image.dangKyHinhAnh(name, src);
+  }
+
+  hinhAnhDaTai(name) {
+    return this.image.hinhAnhDaTai(name);
+  }
+
+  veHinhAnh(name, x, y) {
+    return this.image.veHinhAnh(this.ctx, name, x, y);
+  }
+
+  veHinhAnhCoKichThuoc(name, x, y, width, height) {
+    return this.image.veHinhAnhCoKichThuoc(
+      this.ctx, name, x, y, width, height
+    );
+  }
+
   clear(color = this.background) {
     this.ctx.fillStyle = color;
     this.ctx.fillRect(0, 0, this.width, this.height);
@@ -528,6 +548,7 @@ export class VietGame2D {
 
     this.stop();
     this.audio.destroy();
+    this.image.destroy();
     this.detachKeyboard();
     this.detachMouse();
     this.detachTouch();

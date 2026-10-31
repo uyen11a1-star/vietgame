@@ -157,6 +157,16 @@ export class Interpreter {
       gameMethod("tiepTucAmThanh", "tiepTucAmThanh")());
     this.environment.define("datAmLuong", value =>
       gameMethod("datAmLuong", "datAmLuong")(value));
+    this.environment.define("dangKyHinhAnh", (name, src) =>
+      gameMethod("dangKyHinhAnh", "dangKyHinhAnh")(name, src));
+    this.environment.define("hinhAnhDaTai", name =>
+      gameMethod("hinhAnhDaTai", "hinhAnhDaTai")(name));
+    this.environment.define("veHinhAnh", (name, x, y) =>
+      gameMethod("veHinhAnh", "veHinhAnh")(name, x, y));
+    this.environment.define("veHinhAnhCoKichThuoc", (name, x, y, width, height) =>
+      gameMethod("veHinhAnhCoKichThuoc", "veHinhAnhCoKichThuoc")(
+        name, x, y, width, height
+      ));
     this.environment.define("vaCham",
       gameMethod("vaCham", "collides"));
     this.environment.define("dungGame",
