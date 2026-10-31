@@ -45,6 +45,9 @@ export class VietGame2D {
     this.activeTouches = new Map();
     this.touchPosition = { x: 0, y: 0 };
 
+    this.eventHandlers = new Map();
+    this.nextEventId = 1;
+
     this.handlePointerDown = event => {
       if (event?.pointerType !== "touch") return;
       this.updateTouchPosition(event);
@@ -53,6 +56,13 @@ export class VietGame2D {
       try {
         this.touchTarget?.setPointerCapture?.(event.pointerId);
       } catch {}
+      this.emitGameEvent("batDauCham", {
+        x: this.touchPosition.x,
+        y: this.touchPosition.y,
+        id: event.pointerId,
+        soNgonTay: this.activeTouches.size,
+        kieuCham: event.pointerType
+      });
     };
 
     this.handlePointerMove = event => {
@@ -60,6 +70,13 @@ export class VietGame2D {
       this.updateTouchPosition(event);
       this.activeTouches.set(event.pointerId, { ...this.touchPosition });
       event.preventDefault?.();
+      this.emitGameEvent("diChuyenCham", {
+        x: this.touchPosition.x,
+        y: this.touchPosition.y,
+        id: event.pointerId,
+        soNgonTay: this.activeTouches.size,
+        kieuCham: event.pointerType
+      });
     };
 
     this.handlePointerEnd = event => {
@@ -67,31 +84,59 @@ export class VietGame2D {
         this.updateTouchPosition(event);
         this.activeTouches.delete(event.pointerId);
         event.preventDefault?.();
+        this.emitGameEvent("ketThucCham", {
+          x: this.touchPosition.x,
+          y: this.touchPosition.y,
+          id: event.pointerId,
+          soNgonTay: this.activeTouches.size,
+          kieuCham: event.pointerType
+        });
       }
     };
 
-    this.handleMouseMove = event => this.updateMousePosition(event);
+    this.handleMouseMove = event => {
+      this.updateMousePosition(event);
+      this.emitGameEvent("diChuyenChuot", {
+        x: this.mousePosition.x,
+        y: this.mousePosition.y
+      });
+    };
     this.handleMouseDown = event => {
       this.updateMousePosition(event);
       if (Number.isInteger(event?.button)) {
         this.pressedMouseButtons.add(event.button);
       }
+      this.emitGameEvent("nhanChuot", {
+        x: this.mousePosition.x,
+        y: this.mousePosition.y,
+        nut: Number.isInteger(event?.button) ? event.button : null
+      });
     };
     this.handleMouseUp = event => {
       this.updateMousePosition(event);
       if (Number.isInteger(event?.button)) {
         this.pressedMouseButtons.delete(event.button);
       }
+      this.emitGameEvent("thaChuot", {
+        x: this.mousePosition.x,
+        y: this.mousePosition.y,
+        nut: Number.isInteger(event?.button) ? event.button : null
+      });
     };
     this.handleMouseLeave = () => this.pressedMouseButtons.clear();
     this.handleKeyDown = event => {
       if (event && typeof event.key === "string") {
         this.pressedKeys.add(event.key);
+        this.emitGameEvent("nhanPhim", {
+          phim: event.key,
+          lapLai: Boolean(event.repeat)
+        });
       }
     };
     this.handleKeyUp = event => {
       if (event && typeof event.key === "string") {
         this.pressedKeys.delete(event.key);
+        this.emitGameEvent("thaPhim", { phim: event.key });
       }
     };
     this.handleBlur = () => this.pressedKeys.clear();
@@ -338,6 +383,107 @@ export class VietGame2D {
   isKeyDown(key) {
     if (typeof key !== "string" || key.length === 0) return false;
     return this.pressedKeys.has(key);
+  }
+
+  normalizeMouseButton(button) {
+    const buttons = { trai: 0, giua: 1, phai: 2 };
+    const normalized = typeof button === "string" ? buttons[button] : button;
+    if (![0, 1, 2].includes(normalized)) {
+      throw new Error("VietGame: Nut chuot phai la trai, giua, phai hoac 0-2.");
+    }
+    return normalized;
+  }
+
+  registerGameEvent(type, callback, filterProperty = null, filterValue = null) {
+    if (this.destroyed) {
+      throw new Error("VietGame: Game da bi huy.");
+    }
+    if (typeof callback !== "function") {
+      throw new Error("VietGame: Callback su kien phai la ham.");
+    }
+
+    const arity = Number.isInteger(callback.__vietgameArity)
+      ? callback.__vietgameArity
+      : callback.length;
+    if (arity > 1) {
+      throw new Error("VietGame: Ham xu ly su kien chi nhan toi da 1 doi so.");
+    }
+
+    const id = this.nextEventId++;
+    this.eventHandlers.set(id, {
+      type,
+      callback,
+      filterProperty,
+      filterValue
+    });
+    return id;
+  }
+
+  emitGameEvent(type, payload = {}) {
+    if (this.destroyed || this.eventHandlers.size === 0) return;
+
+    const event = Object.freeze({ loai: type, ...payload });
+    const listeners = [...this.eventHandlers.entries()];
+
+    for (const [id, listener] of listeners) {
+      if (this.destroyed) break;
+      if (!this.eventHandlers.has(id) || listener.type !== type) continue;
+      if (listener.filterProperty &&
+          event[listener.filterProperty] !== listener.filterValue) continue;
+
+      const arity = Number.isInteger(listener.callback.__vietgameArity)
+        ? listener.callback.__vietgameArity
+        : listener.callback.length;
+      if (arity === 1) listener.callback(event);
+      else listener.callback();
+    }
+  }
+
+  khiNhanPhim(key, callback) {
+    if (typeof key !== "string" || key.length === 0) {
+      throw new Error("VietGame: Ten phim khong hop le.");
+    }
+    return this.registerGameEvent("nhanPhim", callback, "phim", key);
+  }
+
+  khiThaPhim(key, callback) {
+    if (typeof key !== "string" || key.length === 0) {
+      throw new Error("VietGame: Ten phim khong hop le.");
+    }
+    return this.registerGameEvent("thaPhim", callback, "phim", key);
+  }
+
+  khiNhanChuot(button, callback) {
+    return this.registerGameEvent(
+      "nhanChuot", callback, "nut", this.normalizeMouseButton(button)
+    );
+  }
+
+  khiThaChuot(button, callback) {
+    return this.registerGameEvent(
+      "thaChuot", callback, "nut", this.normalizeMouseButton(button)
+    );
+  }
+
+  khiDiChuyenChuot(callback) {
+    return this.registerGameEvent("diChuyenChuot", callback);
+  }
+
+  khiBatDauCham(callback) {
+    return this.registerGameEvent("batDauCham", callback);
+  }
+
+  khiDiChuyenCham(callback) {
+    return this.registerGameEvent("diChuyenCham", callback);
+  }
+
+  khiKetThucCham(callback) {
+    return this.registerGameEvent("ketThucCham", callback);
+  }
+
+  huySuKien(id) {
+    if (!Number.isInteger(id) || id <= 0) return false;
+    return this.eventHandlers.delete(id);
   }
 
   dangKyAmThanh(name, src) {
@@ -794,6 +940,7 @@ export class VietGame2D {
     this.detachKeyboard();
     this.detachMouse();
     this.detachTouch();
+    this.eventHandlers.clear();
     this.updateCallback = null;
     this.renderCallback = null;
     this.destroyed = true;

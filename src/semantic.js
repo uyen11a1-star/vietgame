@@ -27,6 +27,15 @@ const BUILTINS = new Map([
   ["viTriDauVaoX", { params: [], returns: "thuc" }],
   ["viTriDauVaoY", { params: [], returns: "thuc" }],
   ["soDauVaoDangNhan", { params: [], returns: "so" }],
+  ["khiNhanPhim", { params: ["chuoi", "ham"], returns: "so" }],
+  ["khiThaPhim", { params: ["chuoi", "ham"], returns: "so" }],
+  ["khiNhanChuot", { params: ["chuoi", "ham"], returns: "so" }],
+  ["khiThaChuot", { params: ["chuoi", "ham"], returns: "so" }],
+  ["khiDiChuyenChuot", { params: ["ham"], returns: "so" }],
+  ["khiBatDauCham", { params: ["ham"], returns: "so" }],
+  ["khiDiChuyenCham", { params: ["ham"], returns: "so" }],
+  ["khiKetThucCham", { params: ["ham"], returns: "so" }],
+  ["huySuKien", { params: ["so"], returns: "logic" }],
   ["dangKyAmThanh", { params: ["chuoi", "chuoi"], returns: "chuoi" }],
   ["dangKyNhacNen", { params: ["chuoi", "chuoi"], returns: "chuoi" }],
   ["phatAmThanh", { params: ["chuoi"], returns: "doiTuong" }],
@@ -80,7 +89,7 @@ const BUILTINS = new Map([
   ["chayGame", { params: [], returns: "rong" }],
   ["huyGame", { params: [], returns: "rong" }],
 ]);
-const KNOWN_TYPES = new Set(["so", "thuc", "chuoi", "logic", "kyTu", "mang", "doiTuong", "tuDien", "tapHop", "tuyChon", "rong"]);
+const KNOWN_TYPES = new Set(["so", "thuc", "chuoi", "logic", "kyTu", "mang", "doiTuong", "tuDien", "tapHop", "tuyChon", "rong", "ham"]);
 
 class Scope {
   constructor(parent = null) { this.parent = parent; this.symbols = new Map(); }

@@ -141,6 +141,24 @@ export class Interpreter {
       this.game?.getInputPosition().y ?? 0);
     this.environment.define("soDauVaoDangNhan", () =>
       this.game?.getInputCount() ?? 0);
+    this.environment.define("khiNhanPhim", (key, callback) =>
+      gameMethod("khiNhanPhim", "khiNhanPhim")(key, callback));
+    this.environment.define("khiThaPhim", (key, callback) =>
+      gameMethod("khiThaPhim", "khiThaPhim")(key, callback));
+    this.environment.define("khiNhanChuot", (button, callback) =>
+      gameMethod("khiNhanChuot", "khiNhanChuot")(button, callback));
+    this.environment.define("khiThaChuot", (button, callback) =>
+      gameMethod("khiThaChuot", "khiThaChuot")(button, callback));
+    this.environment.define("khiDiChuyenChuot", callback =>
+      gameMethod("khiDiChuyenChuot", "khiDiChuyenChuot")(callback));
+    this.environment.define("khiBatDauCham", callback =>
+      gameMethod("khiBatDauCham", "khiBatDauCham")(callback));
+    this.environment.define("khiDiChuyenCham", callback =>
+      gameMethod("khiDiChuyenCham", "khiDiChuyenCham")(callback));
+    this.environment.define("khiKetThucCham", callback =>
+      gameMethod("khiKetThucCham", "khiKetThucCham")(callback));
+    this.environment.define("huySuKien", id =>
+      gameMethod("huySuKien", "huySuKien")(id));
     this.environment.define("dangKyAmThanh", (name, src) =>
       gameMethod("dangKyAmThanh", "dangKyAmThanh")(name, src));
     this.environment.define("dangKyNhacNen", (name, src) =>
@@ -298,7 +316,7 @@ export class Interpreter {
         const closure = this.environment;
         const declaration = node;
 
-        this.environment.define(node.name, (...args) => {
+        const callable = (...args) => {
           if (args.length !== declaration.params.length) {
             throw new RuntimeError(
               `Ham '${node.name}' nhan sai so doi so.`
@@ -333,7 +351,12 @@ export class Interpreter {
           } finally {
             this.callDepth--;
           }
+        };
+
+        Object.defineProperty(callable, "__vietgameArity", {
+          value: declaration.params.length
         });
+        this.environment.define(node.name, callable);
 
         return;
       }
