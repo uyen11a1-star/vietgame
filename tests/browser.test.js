@@ -108,3 +108,31 @@ test("phimDangNhan duoc kiem tra kieu logic", () => {
     /VG3015/
   );
 });
+
+
+test("vaCham tra ve that khi hai nhan vat chong lan", () => {
+  const output = [];
+  runVietGame(`
+bien a = taoNhanVat(10, 10, 40, 40, "#ff0000")
+bien b = taoNhanVat(30, 30, 40, 40, "#00ff00")
+in(vaCham(a, b))
+`, createCanvas(), { onOutput: line => output.push(line) });
+  assert.deepEqual(output, ["that"]);
+});
+
+test("vaCham tra ve sai khi hai nhan vat khong cham nhau", () => {
+  const output = [];
+  runVietGame(`
+bien a = taoNhanVat(10, 10, 20, 20, "#ff0000")
+bien b = taoNhanVat(100, 100, 20, 20, "#00ff00")
+in(vaCham(a, b))
+`, createCanvas(), { onOutput: line => output.push(line) });
+  assert.deepEqual(output, ["sai"]);
+});
+
+test("vaCham kiem tra kieu doi tuong", () => {
+  assert.throws(
+    () => runVietGame("in(vaCham(123, 456))", createCanvas()),
+    /VG3015/
+  );
+});

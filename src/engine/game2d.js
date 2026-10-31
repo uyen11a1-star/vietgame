@@ -133,6 +133,25 @@ export class VietGame2D {
     return character;
   }
 
+  collides(first, second) {
+    const valid = value =>
+      value && typeof value === "object" &&
+      Number.isFinite(value.x) &&
+      Number.isFinite(value.y) &&
+      Number.isFinite(value.width) &&
+      Number.isFinite(value.height) &&
+      value.width >= 0 && value.height >= 0;
+
+    if (!valid(first) || !valid(second)) {
+      throw new Error("VietGame: Hinh chu nhat va cham khong hop le.");
+    }
+
+    return first.x < second.x + second.width &&
+      first.x + first.width > second.x &&
+      first.y < second.y + second.height &&
+      first.y + first.height > second.y;
+  }
+
   drawCharacter(character) {
     if (!character || character.__vietgameCharacter !== true) {
       throw new Error("VietGame: Doi tuong khong phai nhan vat.");

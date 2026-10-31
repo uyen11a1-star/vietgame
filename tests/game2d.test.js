@@ -226,3 +226,52 @@ test("tu choi doi tuong ban phim khong hop le", () => {
     /ban phim khong hop le/
   );
 });
+
+
+test("phat hien hai hinh chu nhat chong lan", () => {
+  const game = new VietGame2D(createCanvas());
+  assert.equal(game.collides(
+    { x: 10, y: 10, width: 40, height: 40 },
+    { x: 30, y: 30, width: 40, height: 40 }
+  ), true);
+});
+
+test("khong phat hien va cham khi hai hinh cach xa", () => {
+  const game = new VietGame2D(createCanvas());
+  assert.equal(game.collides(
+    { x: 0, y: 0, width: 20, height: 20 },
+    { x: 50, y: 50, width: 20, height: 20 }
+  ), false);
+});
+
+test("hai hinh chi cham canh khong tinh la va cham", () => {
+  const game = new VietGame2D(createCanvas());
+  assert.equal(game.collides(
+    { x: 0, y: 0, width: 20, height: 20 },
+    { x: 20, y: 0, width: 20, height: 20 }
+  ), false);
+});
+
+test("phat hien hinh nam ben trong hinh kia", () => {
+  const game = new VietGame2D(createCanvas());
+  assert.equal(game.collides(
+    { x: 0, y: 0, width: 100, height: 100 },
+    { x: 25, y: 25, width: 10, height: 10 }
+  ), true);
+});
+
+test("phat hien va cham giua hai nhan vat", () => {
+  const game = new VietGame2D(createCanvas());
+  const a = game.createCharacter(10, 10, 30, 30);
+  const b = game.createCharacter(20, 20, 30, 30);
+  assert.equal(game.collides(a, b), true);
+});
+
+test("tu choi hinh chu nhat khong hop le", () => {
+  const game = new VietGame2D(createCanvas());
+  assert.throws(() => game.collides(null, {}), /khong hop le/);
+  assert.throws(() => game.collides(
+    { x: 0, y: 0, width: -1, height: 10 },
+    { x: 0, y: 0, width: 10, height: 10 }
+  ), /khong hop le/);
+});

@@ -16,6 +16,7 @@ const BUILTINS = new Map([
   ["diChuyen", { params: ["doiTuong", "thuc", "thuc"], returns: "doiTuong" }],
   ["veNhanVat", { params: ["doiTuong"], returns: "rong" }],
   ["phimDangNhan", { params: ["chuoi"], returns: "logic" }],
+  ["vaCham", { params: ["doiTuong", "doiTuong"], returns: "logic" }],
 ]);
 const KNOWN_TYPES = new Set(["so", "thuc", "chuoi", "logic", "kyTu", "mang", "doiTuong", "tuDien", "tapHop", "tuyChon", "rong"]);
 
