@@ -519,3 +519,53 @@ test("Audio System duoc semantic analyzer kiem tra kieu", () => {
     /VG3015/
   );
 });
+
+
+// v0.6.1 - Audio Controls
+test("browser dieu khien tam dung va tiep tuc am thanh", () => {
+  const created = [];
+
+  const result = runVietGame(`
+bien nhac = phatNhacNen("theme.mp3")
+tamDungAmThanh()
+tiepTucAmThanh()
+`, createCanvas(), {
+    audioFactory(src) {
+      const item = {
+        src,
+        loop: false,
+        volume: 1,
+        currentTime: 0,
+        paused: false,
+        playCount: 0,
+        play() {
+          this.paused = false;
+          this.playCount++;
+          return Promise.resolve();
+        },
+        pause() {
+          this.paused = true;
+        }
+      };
+      created.push(item);
+      return item;
+    }
+  });
+
+  assert.equal(created.length, 1);
+  assert.equal(created[0].loop, true);
+  assert.equal(created[0].paused, false);
+  assert.equal(created[0].playCount, 2);
+
+  result.game.destroy();
+});
+
+test("tamDungAmThanh khong nhan doi so", () => {
+  assert.throws(
+    () => runVietGame(
+      'tamDungAmThanh("sai")',
+      createCanvas()
+    ),
+    /VG3014/
+  );
+});

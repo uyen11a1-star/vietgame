@@ -30,6 +30,7 @@ const BUILTINS = new Map([
   ["phatAmThanh", { params: ["chuoi"], returns: "doiTuong" }],
   ["phatNhacNen", { params: ["chuoi"], returns: "doiTuong" }],
   ["dungAmThanh", { params: [], returns: "rong" }],
+  ["tamDungAmThanh", { params: [], returns: "rong" }],
   ["tiepTucAmThanh", { params: [], returns: "rong" }],
   ["datAmLuong", { params: ["thuc"], returns: "thuc" }],
   ["vaCham", { params: ["doiTuong", "doiTuong"], returns: "logic" }],

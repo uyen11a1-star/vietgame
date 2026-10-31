@@ -147,6 +147,8 @@ export class Interpreter {
       gameMethod("phatNhacNen", "phatNhacNen")(src));
     this.environment.define("dungAmThanh", () =>
       gameMethod("dungAmThanh", "dungAmThanh")());
+    this.environment.define("tamDungAmThanh", () =>
+      gameMethod("tamDungAmThanh", "tamDungAmThanh")());
     this.environment.define("tiepTucAmThanh", () =>
       gameMethod("tiepTucAmThanh", "tiepTucAmThanh")());
     this.environment.define("datAmLuong", value =>
