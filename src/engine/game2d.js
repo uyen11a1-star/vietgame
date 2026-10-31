@@ -18,8 +18,57 @@ export class VietGame2D {
     this.frameId = null;
     this.lastTime = 0;
 
+    this.pressedKeys = new Set();
+    this.keyboardTarget = null;
+    this.handleKeyDown = event => {
+      if (event && typeof event.key === "string") {
+        this.pressedKeys.add(event.key);
+      }
+    };
+    this.handleKeyUp = event => {
+      if (event && typeof event.key === "string") {
+        this.pressedKeys.delete(event.key);
+      }
+    };
+    this.handleBlur = () => this.pressedKeys.clear();
+
+    if (options.keyboardTarget) {
+      this.attachKeyboard(options.keyboardTarget);
+    }
+
     this.canvas.width = this.width;
     this.canvas.height = this.height;
+  }
+
+  attachKeyboard(target) {
+    if (!target ||
+        typeof target.addEventListener !== "function" ||
+        typeof target.removeEventListener !== "function") {
+      throw new Error("VietGame: Doi tuong ban phim khong hop le.");
+    }
+
+    if (this.keyboardTarget === target) return;
+
+    this.detachKeyboard();
+    this.keyboardTarget = target;
+    target.addEventListener("keydown", this.handleKeyDown);
+    target.addEventListener("keyup", this.handleKeyUp);
+    target.addEventListener("blur", this.handleBlur);
+  }
+
+  detachKeyboard() {
+    if (!this.keyboardTarget) return;
+
+    this.keyboardTarget.removeEventListener("keydown", this.handleKeyDown);
+    this.keyboardTarget.removeEventListener("keyup", this.handleKeyUp);
+    this.keyboardTarget.removeEventListener("blur", this.handleBlur);
+    this.keyboardTarget = null;
+    this.pressedKeys.clear();
+  }
+
+  isKeyDown(key) {
+    if (typeof key !== "string" || key.length === 0) return false;
+    return this.pressedKeys.has(key);
   }
 
   clear(color = this.background) {
@@ -125,6 +174,11 @@ export class VietGame2D {
     };
 
     this.frameId = requestAnimationFrame(loop);
+  }
+
+  destroy() {
+    this.stop();
+    this.detachKeyboard();
   }
 
   stop() {

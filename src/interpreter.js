@@ -117,6 +117,8 @@ export class Interpreter {
 
     this.environment.define("veNhanVat",
       gameMethod("veNhanVat", "drawCharacter"));
+    this.environment.define("phimDangNhan", key =>
+      this.game?.isKeyDown(key) ?? false);
   }
 
   interpret(program) {

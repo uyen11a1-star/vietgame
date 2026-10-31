@@ -21,7 +21,13 @@ export function runVietGame(source, canvas, options = {}) {
     throw new SemanticError(semantic.diagnostics);
   }
 
-  const game = new VietGame2D(canvas, options);
+  const keyboardTarget = options.keyboardTarget ??
+    (typeof window !== "undefined" ? window : null);
+
+  const game = new VietGame2D(canvas, {
+    ...options,
+    keyboardTarget
+  });
 
   const interpreter = new Interpreter({
     game,

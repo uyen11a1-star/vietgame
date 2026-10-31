@@ -81,3 +81,30 @@ test("kiem tra so doi so cua ham taoNhanVat", () => {
     /VG3014/
   );
 });
+
+
+test("phimDangNhan hoat dong trong chuong trinh VietGame", () => {
+  const canvas = createCanvas();
+  const output = [];
+
+  const result = runVietGame(
+    'in(phimDangNhan("ArrowRight"))',
+    canvas,
+    { onOutput: line => output.push(line) }
+  );
+
+  assert.deepEqual(output, ["sai"]);
+  assert.equal(result.game.isKeyDown("ArrowRight"), false);
+});
+
+test("phimDangNhan duoc kiem tra kieu logic", () => {
+  const canvas = createCanvas();
+
+  assert.throws(
+    () => runVietGame(
+      'neu phimDangNhan(123):\n    in("dang nhan")',
+      canvas
+    ),
+    /VG3015/
+  );
+});

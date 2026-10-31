@@ -148,3 +148,81 @@ test("khong cho phep kich thuoc nhan vat khong hop le", () => {
     /khong hop le/
   );
 });
+
+
+function createKeyboardTarget() {
+  const listeners = new Map();
+
+  return {
+    addEventListener(type, callback) {
+      if (!listeners.has(type)) listeners.set(type, new Set());
+      listeners.get(type).add(callback);
+    },
+    removeEventListener(type, callback) {
+      listeners.get(type)?.delete(callback);
+    },
+    dispatch(type, event = {}) {
+      for (const callback of listeners.get(type) ?? []) {
+        callback(event);
+      }
+    }
+  };
+}
+
+test("nhan dien phim duoc nhan va tha", () => {
+  const target = createKeyboardTarget();
+  const game = new VietGame2D(createCanvas(), {
+    keyboardTarget: target
+  });
+
+  target.dispatch("keydown", { key: "ArrowRight" });
+  assert.equal(game.isKeyDown("ArrowRight"), true);
+
+  target.dispatch("keyup", { key: "ArrowRight" });
+  assert.equal(game.isKeyDown("ArrowRight"), false);
+});
+
+test("nhan nhieu phim cung luc", () => {
+  const target = createKeyboardTarget();
+  const game = new VietGame2D(createCanvas(), {
+    keyboardTarget: target
+  });
+
+  target.dispatch("keydown", { key: "ArrowUp" });
+  target.dispatch("keydown", { key: "ArrowRight" });
+
+  assert.equal(game.isKeyDown("ArrowUp"), true);
+  assert.equal(game.isKeyDown("ArrowRight"), true);
+});
+
+test("xoa trang thai phim khi cua so mat tieu diem", () => {
+  const target = createKeyboardTarget();
+  const game = new VietGame2D(createCanvas(), {
+    keyboardTarget: target
+  });
+
+  target.dispatch("keydown", { key: "a" });
+  target.dispatch("blur");
+
+  assert.equal(game.isKeyDown("a"), false);
+});
+
+test("destroy go bo su kien ban phim", () => {
+  const target = createKeyboardTarget();
+  const game = new VietGame2D(createCanvas(), {
+    keyboardTarget: target
+  });
+
+  target.dispatch("keydown", { key: "d" });
+  game.destroy();
+  target.dispatch("keydown", { key: "d" });
+
+  assert.equal(game.isKeyDown("d"), false);
+});
+
+test("tu choi doi tuong ban phim khong hop le", () => {
+  assert.throws(
+    () => new VietGame2D(createCanvas(), { keyboardTarget: {} }),
+    /ban phim khong hop le/
+  );
+});
