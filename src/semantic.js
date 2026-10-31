@@ -8,6 +8,10 @@ export class SemanticError extends Error {
 
 const BUILTINS = new Map([
   ["in", { params: null, returns: "rong" }],
+  ["xoaManHinh", { params: ["chuoi"], returns: "rong" }],
+  ["veChuNhat", { params: ["thuc", "thuc", "thuc", "thuc", "chuoi"], returns: "rong" }],
+  ["veHinhTron", { params: ["thuc", "thuc", "thuc", "chuoi"], returns: "rong" }],
+  ["veChu", { params: ["chuoi", "thuc", "thuc", "thuc", "chuoi"], returns: "rong" }],
 ]);
 const KNOWN_TYPES = new Set(["so", "thuc", "chuoi", "logic", "kyTu", "mang", "doiTuong", "tuDien", "tapHop", "tuyChon", "rong"]);
 
@@ -225,6 +229,17 @@ export class SemanticAnalyzer {
             if (argTypes[i] && param.declaredType && !this.compatible(param.declaredType, argTypes[i])) this.report("VG3015", `Doi so ${i+1} cua ham '${node.callee.name}' can '${param.declaredType}' nhung nhan '${argTypes[i]}'.`);
           });
           return symbol.returnType ?? "khong_ro";
+        }
+        if (symbol?.kind === "builtin" && symbol.params) {
+          if (argTypes.length !== symbol.params.length) {
+            this.report("VG3014", `Ham '${node.callee.name}' can ${symbol.params.length} doi so nhung nhan ${argTypes.length}.`);
+          }
+
+          symbol.params.forEach((expected, i) => {
+            if (argTypes[i] && !this.compatible(expected, argTypes[i])) {
+              this.report("VG3015", `Doi so ${i + 1} cua ham '${node.callee.name}' can '${expected}' nhung nhan '${argTypes[i]}'.`);
+            }
+          });
         }
         return symbol?.returns ?? "khong_ro";
       }

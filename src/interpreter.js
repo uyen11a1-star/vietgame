@@ -54,17 +54,47 @@ export class Interpreter {
     this.callDepth = 0;
     this.environment = new Environment();
 
+    this.game = options.game ?? null;
+    this.onGameTitle = options.onGameTitle ?? null;
+    this.gameTitle = null;
+
     this.environment.define("in", (...args) => {
       const line = args.map(display).join(" ");
       this.output.push(line);
       this.onOutput?.(line);
       return null;
     });
+
+    const gameMethod = (name, method) => (...args) => {
+      if (!this.game || typeof this.game[method] !== "function") {
+        throw new RuntimeError(
+          `Ham '${name}' chi hoat dong trong moi truong Canvas.`
+        );
+      }
+      return this.game[method](...args);
+    };
+
+    this.environment.define("xoaManHinh",
+      gameMethod("xoaManHinh", "clear"));
+    this.environment.define("veChuNhat",
+      gameMethod("veChuNhat", "rect"));
+    this.environment.define("veHinhTron",
+      gameMethod("veHinhTron", "circle"));
+    this.environment.define("veChu", (...args) => {
+      if (!this.game) {
+        throw new RuntimeError(
+          "Ham 'veChu' chi hoat dong trong moi truong Canvas."
+        );
+      }
+      const [value, x, y, size, color] = args;
+      return this.game.text(value, x, y, { size, color });
+    });
   }
 
   interpret(program) {
     this.output = [];
     this.callDepth = 0;
+    this.gameTitle = null;
 
     try {
       for (const statement of program.body ?? []) {
@@ -96,6 +126,8 @@ export class Interpreter {
   execute(node) {
     switch (node.type) {
       case "GameDeclaration":
+        this.gameTitle = node.name;
+        this.onGameTitle?.(node.name);
         return;
 
       case "VariableDeclaration": {
