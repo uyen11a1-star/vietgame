@@ -12,6 +12,9 @@ const BUILTINS = new Map([
   ["veChuNhat", { params: ["thuc", "thuc", "thuc", "thuc", "chuoi"], returns: "rong" }],
   ["veHinhTron", { params: ["thuc", "thuc", "thuc", "chuoi"], returns: "rong" }],
   ["veChu", { params: ["chuoi", "thuc", "thuc", "thuc", "chuoi"], returns: "rong" }],
+  ["taoNhanVat", { params: ["thuc", "thuc", "thuc", "thuc", "chuoi"], returns: "doiTuong" }],
+  ["diChuyen", { params: ["doiTuong", "thuc", "thuc"], returns: "doiTuong" }],
+  ["veNhanVat", { params: ["doiTuong"], returns: "rong" }],
 ]);
 const KNOWN_TYPES = new Set(["so", "thuc", "chuoi", "logic", "kyTu", "mang", "doiTuong", "tuDien", "tapHop", "tuyChon", "rong"]);
 

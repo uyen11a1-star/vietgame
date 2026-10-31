@@ -50,3 +50,34 @@ test("bao loi neu ham ve sai so doi so", () => {
     /VG3014/
   );
 });
+
+
+test("tao, di chuyen va ve nhan vat", () => {
+  const canvas = createCanvas();
+  const source = `
+trochoi "Nhan vat dau tien"
+bien nguoiChoi = taoNhanVat(10, 20, 30, 40, "#ffcc00")
+diChuyen(nguoiChoi, 15, 25)
+veNhanVat(nguoiChoi)
+`;
+
+  runVietGame(source, canvas);
+
+  assert.ok(canvas.calls.some(call =>
+    call[0] === "fillRect" &&
+    call[1] === 25 &&
+    call[2] === 45 &&
+    call[3] === 30 &&
+    call[4] === 40
+  ));
+});
+
+test("kiem tra so doi so cua ham taoNhanVat", () => {
+  assert.throws(
+    () => runVietGame(
+      "bien nv = taoNhanVat(10, 20, 30)",
+      createCanvas()
+    ),
+    /VG3014/
+  );
+});

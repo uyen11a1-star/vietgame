@@ -19,7 +19,7 @@ const KEYWORDS = new Set([
   "nhap", "xuat",
   "trochoi", "manhinh", "nhanvat",
   "khi", "batDau", "moi", "khungHinh",
-  "hienThi", "diChuyen", "phimDangNhan", "in"
+  "hienThi", "phimDangNhan", "in"
 ]);
 
 const OPERATORS = [

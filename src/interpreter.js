@@ -89,6 +89,34 @@ export class Interpreter {
       const [value, x, y, size, color] = args;
       return this.game.text(value, x, y, { size, color });
     });
+
+    this.environment.define("taoNhanVat", (...args) => {
+      if (!this.game) {
+        throw new RuntimeError("Ham 'taoNhanVat' chi hoat dong trong Canvas.");
+      }
+      if (args.length !== 5) {
+        throw new RuntimeError("Ham 'taoNhanVat' can 5 doi so.");
+      }
+      try {
+        return this.game.createCharacter(...args);
+      } catch (error) {
+        throw new RuntimeError(error.message);
+      }
+    });
+
+    this.environment.define("diChuyen", (...args) => {
+      if (!this.game) {
+        throw new RuntimeError("Ham 'diChuyen' chi hoat dong trong Canvas.");
+      }
+      try {
+        return this.game.moveCharacter(...args);
+      } catch (error) {
+        throw new RuntimeError(error.message);
+      }
+    });
+
+    this.environment.define("veNhanVat",
+      gameMethod("veNhanVat", "drawCharacter"));
   }
 
   interpret(program) {

@@ -49,6 +49,55 @@ export class VietGame2D {
     this.ctx.fillText(String(value), x, y);
   }
 
+  createCharacter(x, y, width, height, color = "#ffffff") {
+    const values = [x, y, width, height];
+
+    if (!values.every(Number.isFinite) || width <= 0 || height <= 0) {
+      throw new Error("VietGame: Toa do va kich thuoc nhan vat khong hop le.");
+    }
+
+    return {
+      __vietgameCharacter: true,
+      x: Math.max(0, Math.min(x, this.width - Math.min(width, this.width))),
+      y: Math.max(0, Math.min(y, this.height - Math.min(height, this.height))),
+      width,
+      height,
+      color: String(color)
+    };
+  }
+
+  moveCharacter(character, dx, dy) {
+    if (!character || character.__vietgameCharacter !== true) {
+      throw new Error("VietGame: Doi tuong khong phai nhan vat.");
+    }
+
+    if (!Number.isFinite(dx) || !Number.isFinite(dy)) {
+      throw new Error("VietGame: Toc do di chuyen phai la so hop le.");
+    }
+
+    const maxX = Math.max(0, this.width - Math.min(character.width, this.width));
+    const maxY = Math.max(0, this.height - Math.min(character.height, this.height));
+
+    character.x = Math.max(0, Math.min(character.x + dx, maxX));
+    character.y = Math.max(0, Math.min(character.y + dy, maxY));
+
+    return character;
+  }
+
+  drawCharacter(character) {
+    if (!character || character.__vietgameCharacter !== true) {
+      throw new Error("VietGame: Doi tuong khong phai nhan vat.");
+    }
+
+    this.rect(
+      character.x,
+      character.y,
+      character.width,
+      character.height,
+      character.color
+    );
+  }
+
   start(update, render) {
     if (this.running) return;
 

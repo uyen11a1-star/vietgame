@@ -95,3 +95,56 @@ test("tu choi Canvas khong hop le", () => {
     /Canvas khong hop le/
   );
 });
+
+
+test("tao nhan vat voi toa do va kich thuoc", () => {
+  const game = new VietGame2D(createCanvas());
+  const character = game.createCharacter(10, 20, 30, 40, "#ff0000");
+
+  assert.equal(character.x, 10);
+  assert.equal(character.y, 20);
+  assert.equal(character.width, 30);
+  assert.equal(character.height, 40);
+  assert.equal(character.color, "#ff0000");
+});
+
+test("di chuyen nhan vat va gioi han trong Canvas", () => {
+  const game = new VietGame2D(createCanvas());
+  const character = game.createCharacter(10, 20, 30, 40);
+
+  game.moveCharacter(character, 15, 25);
+  assert.equal(character.x, 25);
+  assert.equal(character.y, 45);
+
+  game.moveCharacter(character, 1000, 1000);
+  assert.equal(character.x, 770);
+  assert.equal(character.y, 560);
+
+  game.moveCharacter(character, -1000, -1000);
+  assert.equal(character.x, 0);
+  assert.equal(character.y, 0);
+});
+
+test("ve nhan vat len Canvas", () => {
+  const canvas = createCanvas();
+  const game = new VietGame2D(canvas);
+  const character = game.createCharacter(5, 6, 20, 30, "#00ff00");
+
+  game.drawCharacter(character);
+
+  assert.ok(canvas.calls.some(call =>
+    call[0] === "fillRect" &&
+    call[1] === 5 &&
+    call[2] === 6 &&
+    call[3] === 20 &&
+    call[4] === 30
+  ));
+});
+
+test("khong cho phep kich thuoc nhan vat khong hop le", () => {
+  const game = new VietGame2D(createCanvas());
+  assert.throws(
+    () => game.createCharacter(0, 0, -10, 20),
+    /khong hop le/
+  );
+});
