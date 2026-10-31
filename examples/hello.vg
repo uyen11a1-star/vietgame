@@ -1,0 +1,12 @@
+trochoi "Vi du VietGame"
+
+bien ten = "VietGame"
+so tocDo = 5
+
+neu tocDo > 0:
+    in("Xin chao, " + ten)
+nguocLai:
+    in("Dung lai")
+
+ham tinhTong(a: so, b: so) -> so:
+    traVe a + b

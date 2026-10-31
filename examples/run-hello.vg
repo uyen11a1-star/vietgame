@@ -1,0 +1,18 @@
+trochoi "Chuong trinh dau tien"
+
+bien ten = "VietGame"
+so diem = 10
+
+in("Xin chao " + ten)
+in("Diem ban dau:")
+in(diem)
+
+diem = diem + 5
+
+in("Diem moi:")
+in(diem)
+
+neu diem >= 15:
+    in("Ban da dat muc tieu!")
+nguocLai:
+    in("Hay tiep tuc!")

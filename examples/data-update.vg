@@ -1,0 +1,19 @@
+trochoi "Data Update"
+
+bien diem = [10, 20, 30]
+
+bien nguoiChoi = {
+    ten: "Nyra",
+    capDo: 5
+}
+
+diem[0] = 100
+diem[1] = diem[1] + 5
+
+nguoiChoi.capDo = 10
+nguoiChoi.ten = "VietGame"
+
+in(diem[0])
+in(diem[1])
+in(nguoiChoi.ten)
+in(nguoiChoi.capDo)

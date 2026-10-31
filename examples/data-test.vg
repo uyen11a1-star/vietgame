@@ -1,0 +1,15 @@
+trochoi "Data Test"
+
+bien diem = [10, 20, 30]
+
+bien nguoiChoi = {
+    ten: "Nyra",
+    capDo: 5
+}
+
+in(diem[0])
+in(diem[1])
+in(diem[2])
+
+in(nguoiChoi.ten)
+in(nguoiChoi.capDo)

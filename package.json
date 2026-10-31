@@ -1,0 +1,13 @@
+{
+  "name": "vietgame-language",
+  "version": "0.3.0",
+  "private": true,
+  "type": "module",
+  "description": "VietGame language - Lexer, Parser and Semantic Analyzer",
+  "scripts": {
+    "test": "node --test",
+    "tokens": "node src/cli.js",
+    "parse": "node src/parse-cli.js",
+    "check": "node src/check-cli.js"
+  }
+}
