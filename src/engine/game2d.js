@@ -413,6 +413,160 @@ export class VietGame2D {
     this.ctx.fillText(String(value), x, y);
   }
 
+
+  veDuongThang(x1, y1, x2, y2, color = "#ffffff", width = 1) {
+    if (![x1, y1, x2, y2, width].every(Number.isFinite) || width <= 0) {
+      throw new Error("VietGame: Thong so duong thang khong hop le.");
+    }
+    this.ctx.beginPath();
+    this.ctx.moveTo(x1, y1);
+    this.ctx.lineTo(x2, y2);
+    this.ctx.strokeStyle = color;
+    this.ctx.lineWidth = width;
+    this.ctx.stroke();
+  }
+
+  veDuongGapKhuc(points, color = "#ffffff", width = 1) {
+    if (!Array.isArray(points) || points.length < 4 ||
+        points.length % 2 !== 0 ||
+        !points.every(Number.isFinite) ||
+        !Number.isFinite(width) || width <= 0) {
+      throw new Error("VietGame: Danh sach toa do duong gap khuc khong hop le.");
+    }
+    this.ctx.beginPath();
+    this.ctx.moveTo(points[0], points[1]);
+    for (let i = 2; i < points.length; i += 2) {
+      this.ctx.lineTo(points[i], points[i + 1]);
+    }
+    this.ctx.strokeStyle = color;
+    this.ctx.lineWidth = width;
+    this.ctx.stroke();
+  }
+
+  veElip(x, y, rx, ry, color = "#ffffff") {
+    if (![x, y, rx, ry].every(Number.isFinite) || rx <= 0 || ry <= 0) {
+      throw new Error("VietGame: Thong so elip khong hop le.");
+    }
+    this.ctx.beginPath();
+    this.ctx.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2);
+    this.ctx.fillStyle = color;
+    this.ctx.fill();
+  }
+
+  veDaGiac(points, color = "#ffffff") {
+    if (!Array.isArray(points) || points.length < 6 ||
+        points.length % 2 !== 0 ||
+        !points.every(Number.isFinite)) {
+      throw new Error("VietGame: Danh sach toa do da giac khong hop le.");
+    }
+    this.ctx.beginPath();
+    this.ctx.moveTo(points[0], points[1]);
+    for (let i = 2; i < points.length; i += 2) {
+      this.ctx.lineTo(points[i], points[i + 1]);
+    }
+    this.ctx.closePath();
+    this.ctx.fillStyle = color;
+    this.ctx.fill();
+  }
+
+  veChuNhatRong(x, y, width, height, color = "#ffffff", lineWidth = 1) {
+    if (![x, y, width, height, lineWidth].every(Number.isFinite) ||
+        width < 0 || height < 0 || lineWidth <= 0) {
+      throw new Error("VietGame: Thong so hinh chu nhat khong hop le.");
+    }
+    this.ctx.strokeStyle = color;
+    this.ctx.lineWidth = lineWidth;
+    this.ctx.strokeRect(x, y, width, height);
+  }
+
+  veHinhTronRong(x, y, radius, color = "#ffffff", lineWidth = 1) {
+    if (![x, y, radius, lineWidth].every(Number.isFinite) ||
+        radius < 0 || lineWidth <= 0) {
+      throw new Error("VietGame: Thong so hinh tron khong hop le.");
+    }
+    this.ctx.beginPath();
+    this.ctx.arc(x, y, radius, 0, Math.PI * 2);
+    this.ctx.strokeStyle = color;
+    this.ctx.lineWidth = lineWidth;
+    this.ctx.stroke();
+  }
+
+  datMauNen(color) {
+    this.background = String(color);
+    return this.background;
+  }
+
+  datDoTrongSuot(alpha) {
+    if (!Number.isFinite(alpha) || alpha < 0 || alpha > 1) {
+      throw new Error("VietGame: Do trong suot phai tu 0 den 1.");
+    }
+    this.ctx.globalAlpha = alpha;
+  }
+
+  datDoDayNetVe(width) {
+    if (!Number.isFinite(width) || width <= 0) {
+      throw new Error("VietGame: Do day net ve phai lon hon 0.");
+    }
+    this.ctx.lineWidth = width;
+  }
+
+  datKieuNetVe(style) {
+    const styles = {
+      lien: [],
+      dut: [10, 5],
+      cham: [2, 5]
+    };
+    if (!Object.prototype.hasOwnProperty.call(styles, style)) {
+      throw new Error("VietGame: Kieu net ve phai la lien, dut hoac cham.");
+    }
+    this.ctx.setLineDash(styles[style]);
+  }
+
+  xoay(angle, x = 0, y = 0) {
+    if (![angle, x, y].every(Number.isFinite)) {
+      throw new Error("VietGame: Thong so xoay khong hop le.");
+    }
+    this.ctx.translate(x, y);
+    this.ctx.rotate(angle);
+    this.ctx.translate(-x, -y);
+  }
+
+  phongTo(scaleX, scaleY = scaleX) {
+    if (![scaleX, scaleY].every(Number.isFinite) ||
+        scaleX <= 0 || scaleY <= 0) {
+      throw new Error("VietGame: Ti le phong to phai lon hon 0.");
+    }
+    this.ctx.scale(scaleX, scaleY);
+  }
+
+  datTamVe(x, y) {
+    if (![x, y].every(Number.isFinite)) {
+      throw new Error("VietGame: Toa do tam ve khong hop le.");
+    }
+    this.ctx.translate(x, y);
+  }
+
+  luuTrangThaiVe() {
+    this.ctx.save();
+    this.trangThaiVeDepth = (this.trangThaiVeDepth || 0) + 1;
+  }
+
+  khoiPhucTrangThaiVe() {
+    if (!this.trangThaiVeDepth) {
+      throw new Error("VietGame: Khong co trang thai ve de khoi phuc.");
+    }
+    this.ctx.restore();
+    this.trangThaiVeDepth--;
+  }
+
+  xoaVungVe(x, y, width, height) {
+    if (![x, y, width, height].every(Number.isFinite) ||
+        width < 0 || height < 0) {
+      throw new Error("VietGame: Vung can xoa khong hop le.");
+    }
+    this.ctx.clearRect(x, y, width, height);
+  }
+
   createCharacter(x, y, width, height, color = "#ffffff") {
     const values = [x, y, width, height];
 

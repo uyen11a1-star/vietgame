@@ -167,6 +167,22 @@ export class Interpreter {
       gameMethod("veHinhAnhCoKichThuoc", "veHinhAnhCoKichThuoc")(
         name, x, y, width, height
       ));
+    this.environment.define("veDuongThang", gameMethod("veDuongThang", "veDuongThang"));
+    this.environment.define("veDuongGapKhuc", gameMethod("veDuongGapKhuc", "veDuongGapKhuc"));
+    this.environment.define("veElip", gameMethod("veElip", "veElip"));
+    this.environment.define("veDaGiac", gameMethod("veDaGiac", "veDaGiac"));
+    this.environment.define("veChuNhatRong", gameMethod("veChuNhatRong", "veChuNhatRong"));
+    this.environment.define("veHinhTronRong", gameMethod("veHinhTronRong", "veHinhTronRong"));
+    this.environment.define("datMauNen", gameMethod("datMauNen", "datMauNen"));
+    this.environment.define("datDoTrongSuot", gameMethod("datDoTrongSuot", "datDoTrongSuot"));
+    this.environment.define("datDoDayNetVe", gameMethod("datDoDayNetVe", "datDoDayNetVe"));
+    this.environment.define("datKieuNetVe", gameMethod("datKieuNetVe", "datKieuNetVe"));
+    this.environment.define("xoay", gameMethod("xoay", "xoay"));
+    this.environment.define("phongTo", gameMethod("phongTo", "phongTo"));
+    this.environment.define("datTamVe", gameMethod("datTamVe", "datTamVe"));
+    this.environment.define("luuTrangThaiVe", gameMethod("luuTrangThaiVe", "luuTrangThaiVe"));
+    this.environment.define("khoiPhucTrangThaiVe", gameMethod("khoiPhucTrangThaiVe", "khoiPhucTrangThaiVe"));
+    this.environment.define("xoaVungVe", gameMethod("xoaVungVe", "xoaVungVe"));
     this.environment.define("vaCham",
       gameMethod("vaCham", "collides"));
     this.environment.define("dungGame",
