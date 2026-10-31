@@ -136,3 +136,59 @@ test("destroy giai phong am thanh va chan phat moi", () => {
   assert.equal(audio.destroyed, true);
   assert.throws(() => audio.playSound("later.wav"), /da bi huy/);
 });
+
+
+test("dang ky va phat hieu ung am thanh theo ten", () => {
+  const { audio, created } = createAudioSystem();
+  audio.registerSound("click", "assets/click.mp3");
+
+  const sound = audio.playSound("click");
+  assert.equal(sound.src, "assets/click.mp3");
+  assert.equal(created.length, 1);
+  audio.destroy();
+});
+
+test("dang ky va phat nhac nen theo ten", () => {
+  const { audio, created } = createAudioSystem();
+  audio.registerMusic("menu", "assets/menu.mp3");
+
+  const first = audio.playMusic("menu");
+  const second = audio.playMusic("menu");
+
+  assert.equal(first, second);
+  assert.equal(created.length, 1);
+  assert.equal(second.loop, true);
+  assert.equal(second.playCount, 2);
+  audio.destroy();
+});
+
+test("tu choi ten tai nguyen bi dang ky trung", () => {
+  const { audio } = createAudioSystem();
+  audio.registerSound("click", "assets/click.mp3");
+
+  assert.throws(
+    () => audio.registerSound("click", "assets/other.mp3"),
+    /da duoc dang ky/
+  );
+  audio.destroy();
+});
+
+test("bao loi khi phat tai nguyen chua dang ky", () => {
+  const { audio } = createAudioSystem();
+
+  assert.throws(() => audio.playSound("click"), /chua duoc dang ky/);
+  assert.throws(() => audio.playMusic("menu"), /chua duoc dang ky/);
+  audio.destroy();
+});
+
+test("van ho tro phat am thanh bang duong dan cu", () => {
+  const { audio, created } = createAudioSystem();
+
+  const sound = audio.playSound("assets/old-click.mp3");
+  const music = audio.playMusic("assets/old-menu.mp3");
+
+  assert.equal(sound.src, "assets/old-click.mp3");
+  assert.equal(music.src, "assets/old-menu.mp3");
+  assert.equal(created.length, 2);
+  audio.destroy();
+});

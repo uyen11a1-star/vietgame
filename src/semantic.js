@@ -27,6 +27,8 @@ const BUILTINS = new Map([
   ["viTriDauVaoX", { params: [], returns: "thuc" }],
   ["viTriDauVaoY", { params: [], returns: "thuc" }],
   ["soDauVaoDangNhan", { params: [], returns: "so" }],
+  ["dangKyAmThanh", { params: ["chuoi", "chuoi"], returns: "chuoi" }],
+  ["dangKyNhacNen", { params: ["chuoi", "chuoi"], returns: "chuoi" }],
   ["phatAmThanh", { params: ["chuoi"], returns: "doiTuong" }],
   ["phatNhacNen", { params: ["chuoi"], returns: "doiTuong" }],
   ["dungAmThanh", { params: [], returns: "rong" }],

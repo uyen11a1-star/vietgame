@@ -569,3 +569,45 @@ test("tamDungAmThanh khong nhan doi so", () => {
     /VG3014/
   );
 });
+
+
+test("browser tich hop Audio Asset Management v0.6.2", () => {
+  const created = [];
+  const result = runVietGame(`
+dangKyAmThanh("click", "assets/click.mp3")
+dangKyNhacNen("menu", "assets/menu.mp3")
+bien am = phatAmThanh("click")
+bien nhac = phatNhacNen("menu")
+`, createCanvas(), {
+    audioFactory(src) {
+      const item = {
+        src, loop: false, volume: 1, currentTime: 0,
+        paused: false, playCount: 0,
+        play() {
+          this.paused = false;
+          this.playCount++;
+          return Promise.resolve();
+        },
+        pause() { this.paused = true; }
+      };
+      created.push(item);
+      return item;
+    }
+  });
+
+  assert.equal(created.length, 2);
+  assert.equal(created[0].src, "assets/click.mp3");
+  assert.equal(created[1].src, "assets/menu.mp3");
+  assert.equal(created[1].loop, true);
+  result.game.destroy();
+});
+
+test("semantic analyzer kiem tra doi so dang ky am thanh", () => {
+  assert.throws(
+    () => runVietGame(
+      'dangKyAmThanh("click", 123)',
+      createCanvas()
+    ),
+    /VG3015/
+  );
+});

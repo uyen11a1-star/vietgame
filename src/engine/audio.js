@@ -10,8 +10,55 @@ export class VietGameAudio {
     this.volume = 1;
     this.music = null;
     this.sounds = new Set();
+    this.soundAssets = new Map();
+    this.musicAssets = new Map();
+    this.musicInstances = new Map();
     this.paused = false;
     this.destroyed = false;
+  }
+
+  validateAsset(name, src) {
+    if (typeof name !== "string" || name.trim() === "") {
+      throw new Error("VietGame: Ten tai nguyen am thanh khong hop le.");
+    }
+    if (typeof src !== "string" || src.trim() === "") {
+      throw new Error("VietGame: Duong dan am thanh khong hop le.");
+    }
+  }
+
+  registerSound(name, src) {
+    this.validateAsset(name, src);
+    if (this.destroyed) throw new Error("VietGame: Audio da bi huy.");
+    if (this.soundAssets.has(name)) {
+      throw new Error(`VietGame: Am thanh '${name}' da duoc dang ky.`);
+    }
+    this.soundAssets.set(name, src);
+    return name;
+  }
+
+  registerMusic(name, src) {
+    this.validateAsset(name, src);
+    if (this.destroyed) throw new Error("VietGame: Audio da bi huy.");
+    if (this.musicAssets.has(name)) {
+      throw new Error(`VietGame: Nhac nen '${name}' da duoc dang ky.`);
+    }
+    this.musicAssets.set(name, src);
+    return name;
+  }
+
+  resolveAsset(value, assets, label) {
+    if (typeof value !== "string" || value.trim() === "") {
+      throw new Error("VietGame: Duong dan am thanh khong hop le.");
+    }
+
+    if (assets.has(value)) return { name: value, src: assets.get(value) };
+
+    // Tuong thich voi cach phat bang duong dan o cac phien ban cu.
+    if (/[./\\]/.test(value) || /^https?:/i.test(value)) {
+      return { name: null, src: value };
+    }
+
+    throw new Error(`VietGame: ${label} '${value}' chua duoc dang ky.`);
   }
 
   createAudio(src, loop = false) {
@@ -43,18 +90,32 @@ export class VietGameAudio {
     return audio;
   }
 
-  playSound(src) {
-    const audio = this.createAudio(src, false);
+  playSound(value) {
+    const asset = this.resolveAsset(value, this.soundAssets, "Am thanh");
+    const audio = this.createAudio(asset.src, false);
     this.sounds.add(audio);
 
     audio.onended = () => this.sounds.delete(audio);
     return this.playSafely(audio);
   }
 
-  playMusic(src) {
+  playMusic(value) {
+    const asset = this.resolveAsset(value, this.musicAssets, "Nhac nen");
     this.stopMusic();
 
-    const audio = this.createAudio(src, true);
+    // Tai su dung cung mot Audio instance cho cung mot tai nguyen nhac nen.
+    let audio = this.musicInstances.get(asset.src);
+    if (!audio) {
+      audio = this.createAudio(asset.src, true);
+      this.musicInstances.set(asset.src, audio);
+    }
+
+    audio.loop = true;
+    audio.volume = this.volume;
+    try {
+      audio.currentTime = 0;
+    } catch {}
+
     this.music = audio;
 
     if (this.paused) audio.pause();
@@ -77,9 +138,7 @@ export class VietGameAudio {
     this.paused = true;
     this.music?.pause();
 
-    for (const sound of this.sounds) {
-      sound.pause();
-    }
+    for (const sound of this.sounds) sound.pause();
   }
 
   resume() {
@@ -88,12 +147,9 @@ export class VietGameAudio {
     }
 
     this.paused = false;
-
     if (this.music) this.playSafely(this.music);
 
-    for (const sound of this.sounds) {
-      this.playSafely(sound);
-    }
+    for (const sound of this.sounds) this.playSafely(sound);
   }
 
   stop() {
@@ -120,12 +176,27 @@ export class VietGameAudio {
     if (this.music) this.music.volume = value;
     for (const sound of this.sounds) sound.volume = value;
 
+    for (const music of this.musicInstances.values()) {
+      music.volume = value;
+    }
+
     return this.volume;
   }
 
   destroy() {
     if (this.destroyed) return;
     this.stop();
+
+    for (const music of this.musicInstances.values()) {
+      music.pause();
+      try {
+        music.currentTime = 0;
+      } catch {}
+    }
+
+    this.musicInstances.clear();
+    this.soundAssets.clear();
+    this.musicAssets.clear();
     this.destroyed = true;
   }
 }

@@ -334,6 +334,14 @@ export class VietGame2D {
     return this.pressedKeys.has(key);
   }
 
+  dangKyAmThanh(name, src) {
+    return this.audio.registerSound(name, src);
+  }
+
+  dangKyNhacNen(name, src) {
+    return this.audio.registerMusic(name, src);
+  }
+
   phatAmThanh(src) {
     return this.audio.playSound(src);
   }

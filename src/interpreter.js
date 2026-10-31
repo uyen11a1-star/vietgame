@@ -141,6 +141,10 @@ export class Interpreter {
       this.game?.getInputPosition().y ?? 0);
     this.environment.define("soDauVaoDangNhan", () =>
       this.game?.getInputCount() ?? 0);
+    this.environment.define("dangKyAmThanh", (name, src) =>
+      gameMethod("dangKyAmThanh", "dangKyAmThanh")(name, src));
+    this.environment.define("dangKyNhacNen", (name, src) =>
+      gameMethod("dangKyNhacNen", "dangKyNhacNen")(name, src));
     this.environment.define("phatAmThanh", src =>
       gameMethod("phatAmThanh", "phatAmThanh")(src));
     this.environment.define("phatNhacNen", src =>
