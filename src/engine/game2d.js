@@ -32,6 +32,35 @@ export class VietGame2D {
     this.mousePosition = { x: 0, y: 0 };
     this.pressedMouseButtons = new Set();
 
+    this.touchTarget = null;
+    this.activeTouches = new Map();
+    this.touchPosition = { x: 0, y: 0 };
+
+    this.handlePointerDown = event => {
+      if (event?.pointerType !== "touch") return;
+      this.updateTouchPosition(event);
+      this.activeTouches.set(event.pointerId, { ...this.touchPosition });
+      event.preventDefault?.();
+      try {
+        this.touchTarget?.setPointerCapture?.(event.pointerId);
+      } catch {}
+    };
+
+    this.handlePointerMove = event => {
+      if (!this.activeTouches.has(event?.pointerId)) return;
+      this.updateTouchPosition(event);
+      this.activeTouches.set(event.pointerId, { ...this.touchPosition });
+      event.preventDefault?.();
+    };
+
+    this.handlePointerEnd = event => {
+      if (this.activeTouches.has(event?.pointerId)) {
+        this.updateTouchPosition(event);
+        this.activeTouches.delete(event.pointerId);
+        event.preventDefault?.();
+      }
+    };
+
     this.handleMouseMove = event => this.updateMousePosition(event);
     this.handleMouseDown = event => {
       this.updateMousePosition(event);
@@ -68,6 +97,91 @@ export class VietGame2D {
     if (options.mouseTarget) {
       this.attachMouse(options.mouseTarget);
     }
+
+    if (options.touchTarget) {
+      this.attachTouch(options.touchTarget);
+    }
+  }
+
+  attachTouch(target) {
+    if (this.destroyed) {
+      throw new Error("VietGame: Game da bi huy.");
+    }
+
+    if (!target ||
+        typeof target.addEventListener !== "function" ||
+        typeof target.removeEventListener !== "function") {
+      throw new Error("VietGame: Doi tuong cam ung khong hop le.");
+    }
+
+    if (this.touchTarget === target) return;
+
+    this.detachTouch();
+    this.touchTarget = target;
+    this.previousTouchAction = target.style?.touchAction;
+
+    if (target.style) target.style.touchAction = "none";
+
+    target.addEventListener("pointerdown", this.handlePointerDown);
+    target.addEventListener("pointermove", this.handlePointerMove);
+    target.addEventListener("pointerup", this.handlePointerEnd);
+    target.addEventListener("pointercancel", this.handlePointerEnd);
+  }
+
+  detachTouch() {
+    if (!this.touchTarget) return;
+
+    this.touchTarget.removeEventListener("pointerdown", this.handlePointerDown);
+    this.touchTarget.removeEventListener("pointermove", this.handlePointerMove);
+    this.touchTarget.removeEventListener("pointerup", this.handlePointerEnd);
+    this.touchTarget.removeEventListener("pointercancel", this.handlePointerEnd);
+
+    if (this.touchTarget.style) {
+      this.touchTarget.style.touchAction = this.previousTouchAction ?? "";
+    }
+
+    this.touchTarget = null;
+    this.activeTouches.clear();
+    this.previousTouchAction = undefined;
+  }
+
+  updateTouchPosition(event) {
+    if (!event ||
+        !Number.isFinite(event.clientX) ||
+        !Number.isFinite(event.clientY)) {
+      return;
+    }
+
+    const rect = this.canvas.getBoundingClientRect?.() ?? {
+      left: 0,
+      top: 0,
+      width: this.width,
+      height: this.height
+    };
+
+    const scaleX = rect.width > 0 ? this.width / rect.width : 1;
+    const scaleY = rect.height > 0 ? this.height / rect.height : 1;
+
+    this.touchPosition.x = Math.max(
+      0,
+      Math.min((event.clientX - rect.left) * scaleX, this.width)
+    );
+    this.touchPosition.y = Math.max(
+      0,
+      Math.min((event.clientY - rect.top) * scaleY, this.height)
+    );
+  }
+
+  isTouching() {
+    return this.activeTouches.size > 0;
+  }
+
+  getTouchPosition() {
+    return { ...this.touchPosition };
+  }
+
+  getTouchCount() {
+    return this.activeTouches.size;
   }
 
   attachMouse(target) {
@@ -348,6 +462,7 @@ export class VietGame2D {
     this.stop();
     this.detachKeyboard();
     this.detachMouse();
+    this.detachTouch();
     this.updateCallback = null;
     this.renderCallback = null;
     this.destroyed = true;

@@ -332,3 +332,68 @@ test("chuotDangNhan kiem tra kieu du lieu", () => {
     /VG3015/
   );
 });
+
+
+function createBrowserPointerTarget() {
+  const listeners = new Map();
+  return {
+    style: {},
+    addEventListener(type, callback) {
+      if (!listeners.has(type)) listeners.set(type, new Set());
+      listeners.get(type).add(callback);
+    },
+    removeEventListener(type, callback) {
+      listeners.get(type)?.delete(callback);
+    },
+    dispatch(type, event = {}) {
+      for (const callback of listeners.get(type) ?? []) callback(event);
+    },
+    setPointerCapture() {}
+  };
+}
+
+test("browser tich hop cac ham cam ung", () => {
+  const target = createBrowserPointerTarget();
+  const output = [];
+
+  const result = runVietGame(`
+ham capNhat(dt):
+    in(ngonTayDangCham())
+    in(viTriChamX())
+    in(viTriChamY())
+    in(soNgonTayDangCham())
+
+ham ve():
+    in("ve")
+`, createCanvas(), {
+    touchTarget: target,
+    requestAnimationFrame: callback => {
+      globalThis.__unusedTouchFrame = callback;
+      return 1;
+    },
+    cancelAnimationFrame: () => {},
+    onOutput: line => output.push(line)
+  });
+
+  target.dispatch("pointerdown", {
+    pointerId: 1, pointerType: "touch",
+    clientX: 30, clientY: 40, preventDefault() {}
+  });
+
+  result.game.updateCallback(0.016);
+
+  assert.deepEqual(output, ["that", "30", "40", "1"]);
+  result.game.destroy();
+});
+
+test("cac ham cam ung duoc kiem tra kieu du lieu", () => {
+  const result = runVietGame(`
+in(ngonTayDangCham())
+in(viTriChamX())
+in(viTriChamY())
+in(soNgonTayDangCham())
+`, createCanvas());
+
+  assert.equal(result.game.isTouching(), false);
+  result.game.destroy();
+});

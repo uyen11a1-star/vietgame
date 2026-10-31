@@ -565,3 +565,134 @@ test("destroy go bo tat ca su kien chuot", () => {
   assert.equal(target.count("mouseleave"), 0);
   assert.equal(game.isMouseDown("trai"), false);
 });
+
+
+function createPointerTarget() {
+  const listeners = new Map();
+  return {
+    style: {},
+    addEventListener(type, callback) {
+      if (!listeners.has(type)) listeners.set(type, new Set());
+      listeners.get(type).add(callback);
+    },
+    removeEventListener(type, callback) {
+      listeners.get(type)?.delete(callback);
+    },
+    dispatch(type, event = {}) {
+      for (const callback of listeners.get(type) ?? []) callback(event);
+    },
+    count(type) {
+      return listeners.get(type)?.size ?? 0;
+    },
+    setPointerCapture() {}
+  };
+}
+
+test("nhan dien cham va toa do cam ung", () => {
+  const canvas = createCanvas();
+  canvas.getBoundingClientRect = () => ({
+    left: 10, top: 20, width: 800, height: 600
+  });
+  const target = createPointerTarget();
+  const game = new VietGame2D(canvas, { touchTarget: target });
+
+  target.dispatch("pointerdown", {
+    pointerId: 1, pointerType: "touch",
+    clientX: 110, clientY: 220, preventDefault() {}
+  });
+
+  assert.equal(game.isTouching(), true);
+  assert.equal(game.getTouchCount(), 1);
+  assert.deepEqual(game.getTouchPosition(), { x: 100, y: 200 });
+});
+
+test("theo doi keo ngon tay", () => {
+  const target = createPointerTarget();
+  const game = new VietGame2D(createCanvas(), { touchTarget: target });
+
+  target.dispatch("pointerdown", {
+    pointerId: 1, pointerType: "touch",
+    clientX: 10, clientY: 20
+  });
+  target.dispatch("pointermove", {
+    pointerId: 1, pointerType: "touch",
+    clientX: 80, clientY: 90
+  });
+
+  assert.deepEqual(game.getTouchPosition(), { x: 80, y: 90 });
+  assert.equal(game.isTouching(), true);
+});
+
+test("ho tro nhieu ngon tay cung luc", () => {
+  const target = createPointerTarget();
+  const game = new VietGame2D(createCanvas(), { touchTarget: target });
+
+  for (const pointerId of [1, 2]) {
+    target.dispatch("pointerdown", {
+      pointerId, pointerType: "touch",
+      clientX: pointerId * 10, clientY: pointerId * 20
+    });
+  }
+
+  assert.equal(game.getTouchCount(), 2);
+  assert.equal(game.isTouching(), true);
+
+  target.dispatch("pointerup", {
+    pointerId: 1, pointerType: "touch",
+    clientX: 10, clientY: 20
+  });
+
+  assert.equal(game.getTouchCount(), 1);
+  assert.equal(game.isTouching(), true);
+});
+
+test("pointer cancel giai phong trang thai cham", () => {
+  const target = createPointerTarget();
+  const game = new VietGame2D(createCanvas(), { touchTarget: target });
+
+  target.dispatch("pointerdown", {
+    pointerId: 1, pointerType: "touch", clientX: 10, clientY: 20
+  });
+  target.dispatch("pointercancel", {
+    pointerId: 1, pointerType: "touch", clientX: 10, clientY: 20
+  });
+
+  assert.equal(game.isTouching(), false);
+  assert.equal(game.getTouchCount(), 0);
+});
+
+test("bo qua pointer khong phai cam ung", () => {
+  const target = createPointerTarget();
+  const game = new VietGame2D(createCanvas(), { touchTarget: target });
+
+  target.dispatch("pointerdown", {
+    pointerId: 1, pointerType: "mouse", clientX: 10, clientY: 20
+  });
+
+  assert.equal(game.isTouching(), false);
+});
+
+test("destroy go bo su kien cam ung va khoi phuc touch action", () => {
+  const target = createPointerTarget();
+  target.style.touchAction = "pan-y";
+  const game = new VietGame2D(createCanvas(), { touchTarget: target });
+
+  assert.equal(target.count("pointerdown"), 1);
+  assert.equal(target.style.touchAction, "none");
+
+  game.destroy();
+
+  assert.equal(target.count("pointerdown"), 0);
+  assert.equal(target.count("pointermove"), 0);
+  assert.equal(target.count("pointerup"), 0);
+  assert.equal(target.count("pointercancel"), 0);
+  assert.equal(target.style.touchAction, "pan-y");
+  assert.equal(game.getTouchCount(), 0);
+});
+
+test("tu choi doi tuong cam ung khong hop le", () => {
+  assert.throws(
+    () => new VietGame2D(createCanvas(), { touchTarget: {} }),
+    /cam ung khong hop le/
+  );
+});

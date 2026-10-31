@@ -31,10 +31,19 @@ export function runVietGame(source, canvas, options = {}) {
         : null
     );
 
+  const touchTarget = options.touchTarget ??
+    (
+      typeof canvas?.addEventListener === "function" &&
+      typeof canvas?.removeEventListener === "function"
+        ? canvas
+        : null
+    );
+
   const game = new VietGame2D(canvas, {
     ...options,
     keyboardTarget,
-    mouseTarget
+    mouseTarget,
+    touchTarget
   });
 
   const interpreter = new Interpreter({

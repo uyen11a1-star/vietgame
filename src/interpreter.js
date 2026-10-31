@@ -125,6 +125,14 @@ export class Interpreter {
       this.game?.getMousePosition().x ?? 0);
     this.environment.define("viTriChuotY", () =>
       this.game?.getMousePosition().y ?? 0);
+    this.environment.define("ngonTayDangCham", () =>
+      this.game?.isTouching() ?? false);
+    this.environment.define("viTriChamX", () =>
+      this.game?.getTouchPosition().x ?? 0);
+    this.environment.define("viTriChamY", () =>
+      this.game?.getTouchPosition().y ?? 0);
+    this.environment.define("soNgonTayDangCham", () =>
+      this.game?.getTouchCount() ?? 0);
     this.environment.define("vaCham",
       gameMethod("vaCham", "collides"));
     this.environment.define("dungGame",
