@@ -119,6 +119,12 @@ export class Interpreter {
       gameMethod("veNhanVat", "drawCharacter"));
     this.environment.define("phimDangNhan", key =>
       this.game?.isKeyDown(key) ?? false);
+    this.environment.define("chuotDangNhan", button =>
+      this.game?.isMouseDown(button) ?? false);
+    this.environment.define("viTriChuotX", () =>
+      this.game?.getMousePosition().x ?? 0);
+    this.environment.define("viTriChuotY", () =>
+      this.game?.getMousePosition().y ?? 0);
     this.environment.define("vaCham",
       gameMethod("vaCham", "collides"));
     this.environment.define("dungGame",

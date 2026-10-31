@@ -27,6 +27,25 @@ export class VietGame2D {
 
     this.pressedKeys = new Set();
     this.keyboardTarget = null;
+
+    this.mouseTarget = null;
+    this.mousePosition = { x: 0, y: 0 };
+    this.pressedMouseButtons = new Set();
+
+    this.handleMouseMove = event => this.updateMousePosition(event);
+    this.handleMouseDown = event => {
+      this.updateMousePosition(event);
+      if (Number.isInteger(event?.button)) {
+        this.pressedMouseButtons.add(event.button);
+      }
+    };
+    this.handleMouseUp = event => {
+      this.updateMousePosition(event);
+      if (Number.isInteger(event?.button)) {
+        this.pressedMouseButtons.delete(event.button);
+      }
+    };
+    this.handleMouseLeave = () => this.pressedMouseButtons.clear();
     this.handleKeyDown = event => {
       if (event && typeof event.key === "string") {
         this.pressedKeys.add(event.key);
@@ -45,6 +64,90 @@ export class VietGame2D {
 
     this.canvas.width = this.width;
     this.canvas.height = this.height;
+
+    if (options.mouseTarget) {
+      this.attachMouse(options.mouseTarget);
+    }
+  }
+
+  attachMouse(target) {
+    if (this.destroyed) {
+      throw new Error("VietGame: Game da bi huy.");
+    }
+
+    if (!target ||
+        typeof target.addEventListener !== "function" ||
+        typeof target.removeEventListener !== "function") {
+      throw new Error("VietGame: Doi tuong chuot khong hop le.");
+    }
+
+    if (this.mouseTarget === target) return;
+
+    this.detachMouse();
+    this.mouseTarget = target;
+
+    target.addEventListener("mousemove", this.handleMouseMove);
+    target.addEventListener("mousedown", this.handleMouseDown);
+    target.addEventListener("mouseup", this.handleMouseUp);
+    target.addEventListener("mouseleave", this.handleMouseLeave);
+  }
+
+  detachMouse() {
+    if (!this.mouseTarget) return;
+
+    this.mouseTarget.removeEventListener("mousemove", this.handleMouseMove);
+    this.mouseTarget.removeEventListener("mousedown", this.handleMouseDown);
+    this.mouseTarget.removeEventListener("mouseup", this.handleMouseUp);
+    this.mouseTarget.removeEventListener("mouseleave", this.handleMouseLeave);
+
+    this.mouseTarget = null;
+    this.pressedMouseButtons.clear();
+  }
+
+  updateMousePosition(event) {
+    if (!event ||
+        !Number.isFinite(event.clientX) ||
+        !Number.isFinite(event.clientY)) {
+      return;
+    }
+
+    const rect = this.canvas.getBoundingClientRect?.() ?? {
+      left: 0,
+      top: 0,
+      width: this.width,
+      height: this.height
+    };
+
+    const scaleX = rect.width > 0 ? this.width / rect.width : 1;
+    const scaleY = rect.height > 0 ? this.height / rect.height : 1;
+
+    this.mousePosition.x = Math.max(
+      0,
+      Math.min((event.clientX - rect.left) * scaleX, this.width)
+    );
+    this.mousePosition.y = Math.max(
+      0,
+      Math.min((event.clientY - rect.top) * scaleY, this.height)
+    );
+  }
+
+  isMouseDown(button) {
+    const buttons = {
+      trai: 0,
+      giua: 1,
+      phai: 2
+    };
+
+    const normalized = typeof button === "string"
+      ? buttons[button]
+      : button;
+
+    if (![0, 1, 2].includes(normalized)) return false;
+    return this.pressedMouseButtons.has(normalized);
+  }
+
+  getMousePosition() {
+    return { ...this.mousePosition };
   }
 
   attachKeyboard(target) {
@@ -244,6 +347,7 @@ export class VietGame2D {
 
     this.stop();
     this.detachKeyboard();
+    this.detachMouse();
     this.updateCallback = null;
     this.renderCallback = null;
     this.destroyed = true;

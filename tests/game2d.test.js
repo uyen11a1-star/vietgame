@@ -445,3 +445,123 @@ test("khong the gan ban phim cho game da huy", () => {
     /Game da bi huy/
   );
 });
+
+
+function createMouseTarget() {
+  const listeners = new Map();
+
+  return {
+    addEventListener(type, callback) {
+      if (!listeners.has(type)) listeners.set(type, new Set());
+      listeners.get(type).add(callback);
+    },
+    removeEventListener(type, callback) {
+      listeners.get(type)?.delete(callback);
+    },
+    dispatch(type, event = {}) {
+      for (const callback of listeners.get(type) ?? []) {
+        callback(event);
+      }
+    },
+    count(type) {
+      return listeners.get(type)?.size ?? 0;
+    }
+  };
+}
+
+test("nhan dien chuot va toa do Canvas", () => {
+  const canvas = createCanvas();
+  canvas.getBoundingClientRect = () => ({
+    left: 10, top: 20, width: 800, height: 600
+  });
+
+  const target = createMouseTarget();
+  const game = new VietGame2D(canvas, { mouseTarget: target });
+
+  target.dispatch("mousemove", { clientX: 110, clientY: 220 });
+
+  assert.deepEqual(game.getMousePosition(), { x: 100, y: 200 });
+});
+
+test("quy doi toa do khi Canvas bi co gian", () => {
+  const canvas = createCanvas();
+  canvas.getBoundingClientRect = () => ({
+    left: 100, top: 50, width: 400, height: 300
+  });
+
+  const target = createMouseTarget();
+  const game = new VietGame2D(canvas, { mouseTarget: target });
+
+  target.dispatch("mousemove", { clientX: 200, clientY: 100 });
+
+  assert.deepEqual(game.getMousePosition(), { x: 200, y: 100 });
+});
+
+test("gioi han toa do chuot trong Canvas", () => {
+  const canvas = createCanvas();
+  canvas.getBoundingClientRect = () => ({
+    left: 10, top: 20, width: 800, height: 600
+  });
+
+  const target = createMouseTarget();
+  const game = new VietGame2D(canvas, { mouseTarget: target });
+
+  target.dispatch("mousemove", { clientX: 900, clientY: 700 });
+
+  assert.deepEqual(game.getMousePosition(), { x: 800, y: 600 });
+});
+
+test("nhan dien nhan va tha cac nut chuot", () => {
+  const target = createMouseTarget();
+  const game = new VietGame2D(createCanvas(), { mouseTarget: target });
+
+  target.dispatch("mousedown", { button: 0 });
+  assert.equal(game.isMouseDown("trai"), true);
+
+  target.dispatch("mouseup", { button: 0 });
+  assert.equal(game.isMouseDown("trai"), false);
+
+  target.dispatch("mousedown", { button: 1 });
+  assert.equal(game.isMouseDown("giua"), true);
+
+  target.dispatch("mousedown", { button: 2 });
+  assert.equal(game.isMouseDown("phai"), true);
+});
+
+test("nhan nhieu nut chuot cung luc", () => {
+  const target = createMouseTarget();
+  const game = new VietGame2D(createCanvas(), { mouseTarget: target });
+
+  target.dispatch("mousedown", { button: 0 });
+  target.dispatch("mousedown", { button: 2 });
+
+  assert.equal(game.isMouseDown(0), true);
+  assert.equal(game.isMouseDown(2), true);
+  assert.equal(game.isMouseDown(1), false);
+});
+
+test("mouse leave xoa trang thai cac nut chuot", () => {
+  const target = createMouseTarget();
+  const game = new VietGame2D(createCanvas(), { mouseTarget: target });
+
+  target.dispatch("mousedown", { button: 0 });
+  target.dispatch("mouseleave");
+
+  assert.equal(game.isMouseDown("trai"), false);
+});
+
+test("destroy go bo tat ca su kien chuot", () => {
+  const target = createMouseTarget();
+  const game = new VietGame2D(createCanvas(), { mouseTarget: target });
+
+  assert.equal(target.count("mousemove"), 1);
+  assert.equal(target.count("mousedown"), 1);
+
+  game.destroy();
+
+  assert.equal(target.count("mousemove"), 0);
+  assert.equal(target.count("mousedown"), 0);
+  assert.equal(target.count("mouseup"), 0);
+  assert.equal(target.count("mouseleave"), 0);
+  assert.equal(game.isMouseDown("trai"), false);
+});

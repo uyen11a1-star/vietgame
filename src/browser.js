@@ -23,10 +23,18 @@ export function runVietGame(source, canvas, options = {}) {
 
   const keyboardTarget = options.keyboardTarget ??
     (typeof window !== "undefined" ? window : null);
+  const mouseTarget = options.mouseTarget ??
+    (
+      typeof canvas?.addEventListener === "function" &&
+      typeof canvas?.removeEventListener === "function"
+        ? canvas
+        : null
+    );
 
   const game = new VietGame2D(canvas, {
     ...options,
-    keyboardTarget
+    keyboardTarget,
+    mouseTarget
   });
 
   const interpreter = new Interpreter({

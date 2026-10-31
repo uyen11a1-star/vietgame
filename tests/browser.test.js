@@ -260,3 +260,75 @@ ham ve():
   assert.equal(result.game.running, false);
   assert.equal(scheduler.callbacks.size, 0);
 });
+
+
+function createMouseTarget() {
+  const listeners = new Map();
+
+  return {
+    addEventListener(type, callback) {
+      if (!listeners.has(type)) listeners.set(type, new Set());
+      listeners.get(type).add(callback);
+    },
+    removeEventListener(type, callback) {
+      listeners.get(type)?.delete(callback);
+    },
+    dispatch(type, event = {}) {
+      for (const callback of listeners.get(type) ?? []) {
+        callback(event);
+      }
+    }
+  };
+}
+
+test("browser nhan dien chuot trong game loop", () => {
+  const canvas = createCanvas();
+  const target = createMouseTarget();
+  const scheduler = createBrowserFrameScheduler();
+  const output = [];
+
+  const result = runVietGame(`
+ham capNhat(dt):
+    in(chuotDangNhan("trai"))
+    in(viTriChuotX())
+    in(viTriChuotY())
+
+ham ve():
+    in("ve")
+`, canvas, {
+    mouseTarget: target,
+    requestAnimationFrame: scheduler.requestAnimationFrame.bind(scheduler),
+    cancelAnimationFrame: scheduler.cancelAnimationFrame.bind(scheduler),
+    onOutput: line => output.push(line)
+  });
+
+  target.dispatch("mousemove", { clientX: 120, clientY: 140 });
+  target.dispatch("mousedown", { button: 0 });
+  scheduler.step(1000);
+
+  assert.deepEqual(output, ["that", "120", "140", "ve"]);
+
+  result.game.destroy();
+});
+
+test("browser nhan dien chuot phai va chuot giua", () => {
+  const target = createMouseTarget();
+  const result = runVietGame("", createCanvas(), {
+    mouseTarget: target
+  });
+
+  target.dispatch("mousedown", { button: 1 });
+  assert.equal(result.game.isMouseDown("giua"), true);
+
+  target.dispatch("mousedown", { button: 2 });
+  assert.equal(result.game.isMouseDown("phai"), true);
+
+  result.game.destroy();
+});
+
+test("chuotDangNhan kiem tra kieu du lieu", () => {
+  assert.throws(
+    () => runVietGame("in(chuotDangNhan(123))", createCanvas()),
+    /VG3015/
+  );
+});
