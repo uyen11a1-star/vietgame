@@ -121,6 +121,12 @@ export class Interpreter {
       this.game?.isKeyDown(key) ?? false);
     this.environment.define("vaCham",
       gameMethod("vaCham", "collides"));
+    this.environment.define("dungGame",
+      gameMethod("dungGame", "stop"));
+    this.environment.define("chayGame",
+      gameMethod("chayGame", "resume"));
+    this.environment.define("huyGame",
+      gameMethod("huyGame", "destroy"));
   }
 
   hasFunction(name) {

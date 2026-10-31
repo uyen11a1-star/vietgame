@@ -208,3 +208,55 @@ ham capNhat(dt):
 
   assert.equal(scheduler.callbacks.size, 0);
 });
+
+
+test("cac lenh quan ly game duoc semantic analyzer chap nhan", () => {
+  const source = `
+ham quanLy():
+    dungGame()
+    chayGame()
+    huyGame()
+`;
+  const result = runVietGame(source, createCanvas());
+  assert.equal(result.game.destroyed, false);
+});
+
+test("lenh dungGame tam dung game loop", () => {
+  const scheduler = createBrowserFrameScheduler();
+  const result = runVietGame(`
+ham capNhat(dt):
+    dungGame()
+
+ham ve():
+    in("dang ve")
+`, createCanvas(), {
+    requestAnimationFrame: scheduler.requestAnimationFrame.bind(scheduler),
+    cancelAnimationFrame: scheduler.cancelAnimationFrame.bind(scheduler)
+  });
+
+  assert.equal(result.game.running, true);
+  scheduler.step(1000);
+
+  assert.equal(result.game.running, false);
+  assert.equal(scheduler.callbacks.size, 0);
+});
+
+test("lenh huyGame huy game loop", () => {
+  const scheduler = createBrowserFrameScheduler();
+  const result = runVietGame(`
+ham capNhat(dt):
+    huyGame()
+
+ham ve():
+    in("dang ve")
+`, createCanvas(), {
+    requestAnimationFrame: scheduler.requestAnimationFrame.bind(scheduler),
+    cancelAnimationFrame: scheduler.cancelAnimationFrame.bind(scheduler)
+  });
+
+  scheduler.step(1000);
+
+  assert.equal(result.game.destroyed, true);
+  assert.equal(result.game.running, false);
+  assert.equal(scheduler.callbacks.size, 0);
+});

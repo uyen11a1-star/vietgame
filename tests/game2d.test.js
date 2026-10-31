@@ -372,3 +372,76 @@ test("game loop tu choi khi khong co bo len lich", () => {
   });
   assert.throws(() => game.start(() => {}, () => {}), /requestAnimationFrame/);
 });
+
+
+test("tam dung game giu lai callback de chay tiep", () => {
+  const scheduler = createFrameScheduler();
+  const game = new VietGame2D(createCanvas(), {
+    requestAnimationFrame: scheduler.requestAnimationFrame.bind(scheduler),
+    cancelAnimationFrame: scheduler.cancelAnimationFrame.bind(scheduler)
+  });
+  let updates = 0;
+
+  game.start(() => updates++, () => {});
+  scheduler.step(1000);
+  game.stop();
+
+  assert.equal(game.running, false);
+  assert.equal(scheduler.callbacks.size, 0);
+
+  game.resume();
+  assert.equal(game.running, true);
+  scheduler.step(2000);
+
+  assert.equal(updates, 2);
+  assert.equal(scheduler.callbacks.size, 1);
+  game.destroy();
+});
+
+test("khong the chay tiep khi chua co game loop", () => {
+  const game = new VietGame2D(createCanvas());
+  assert.throws(() => game.resume(), /Chua co game loop/);
+});
+
+test("huy game chi mot lan va giai phong callback", () => {
+  const scheduler = createFrameScheduler();
+  const game = new VietGame2D(createCanvas(), {
+    requestAnimationFrame: scheduler.requestAnimationFrame.bind(scheduler),
+    cancelAnimationFrame: scheduler.cancelAnimationFrame.bind(scheduler)
+  });
+
+  game.start(() => {}, () => {});
+  game.destroy();
+  game.destroy();
+
+  assert.equal(game.running, false);
+  assert.equal(game.destroyed, true);
+  assert.equal(scheduler.callbacks.size, 0);
+  assert.equal(game.updateCallback, null);
+  assert.equal(game.renderCallback, null);
+});
+
+test("khong the khoi dong hoac chay lai game da huy", () => {
+  const game = new VietGame2D(createCanvas(), {
+    requestAnimationFrame: () => 1,
+    cancelAnimationFrame: () => {}
+  });
+
+  game.destroy();
+
+  assert.throws(
+    () => game.start(() => {}, () => {}),
+    /game da bi huy/
+  );
+  assert.throws(() => game.resume(), /game da bi huy/);
+});
+
+test("khong the gan ban phim cho game da huy", () => {
+  const game = new VietGame2D(createCanvas());
+  game.destroy();
+
+  assert.throws(
+    () => game.attachKeyboard(createKeyboardTarget()),
+    /Game da bi huy/
+  );
+});

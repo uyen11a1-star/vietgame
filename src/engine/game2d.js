@@ -15,8 +15,11 @@ export class VietGame2D {
     this.height = options.height ?? 600;
     this.background = options.background ?? "#111111";
     this.running = false;
+    this.destroyed = false;
     this.frameId = null;
     this.lastTime = null;
+    this.updateCallback = null;
+    this.renderCallback = null;
     this.requestFrame = options.requestAnimationFrame ??
       globalThis.requestAnimationFrame?.bind(globalThis);
     this.cancelFrame = options.cancelAnimationFrame ??
@@ -45,6 +48,10 @@ export class VietGame2D {
   }
 
   attachKeyboard(target) {
+    if (this.destroyed) {
+      throw new Error("VietGame: Game da bi huy.");
+    }
+
     if (!target ||
         typeof target.addEventListener !== "function" ||
         typeof target.removeEventListener !== "function") {
@@ -171,6 +178,10 @@ export class VietGame2D {
   }
 
   start(update, render) {
+    if (this.destroyed) {
+      throw new Error("VietGame: Khong the chay game da bi huy.");
+    }
+
     if (this.running) return;
 
     if (typeof update !== "function" ||
@@ -183,6 +194,8 @@ export class VietGame2D {
       throw new Error("VietGame: Trinh duyet khong ho tro requestAnimationFrame.");
     }
 
+    this.updateCallback = update;
+    this.renderCallback = render;
     this.running = true;
     this.lastTime = null;
 
@@ -212,9 +225,28 @@ export class VietGame2D {
     this.frameId = this.requestFrame(loop);
   }
 
+  resume() {
+    if (this.destroyed) {
+      throw new Error("VietGame: Khong the chay lai game da bi huy.");
+    }
+
+    if (this.running) return;
+
+    if (!this.updateCallback || !this.renderCallback) {
+      throw new Error("VietGame: Chua co game loop de tiep tuc.");
+    }
+
+    this.start(this.updateCallback, this.renderCallback);
+  }
+
   destroy() {
+    if (this.destroyed) return;
+
     this.stop();
     this.detachKeyboard();
+    this.updateCallback = null;
+    this.renderCallback = null;
+    this.destroyed = true;
   }
 
   stop() {
