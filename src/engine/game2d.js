@@ -1,5 +1,6 @@
 import { VietGameAudio } from "./audio.js";
 import { VietGameImage } from "./image.js";
+import { VietGameAnimation } from "./animation.js";
 
 export class VietGame2D {
   constructor(canvas, options = {}) {
@@ -11,6 +12,7 @@ export class VietGame2D {
     this.ctx = canvas.getContext("2d");
     this.audio = new VietGameAudio({ audioFactory: options.audioFactory });
     this.image = new VietGameImage({ imageFactory: options.imageFactory });
+    this.animation = new VietGameAnimation(this.image);
 
     if (!this.ctx) {
       throw new Error("VietGame: Khong the tao Canvas 2D context.");
@@ -567,6 +569,46 @@ export class VietGame2D {
     this.ctx.clearRect(x, y, width, height);
   }
 
+  taoHoatAnh(name, frames, fps, loop) {
+    return this.animation.create(name, frames, fps, loop);
+  }
+
+  phatHoatAnh(name) {
+    return this.animation.play(name);
+  }
+
+  tamDungHoatAnh(name) {
+    return this.animation.pause(name);
+  }
+
+  tiepTucHoatAnh(name) {
+    return this.animation.resume(name);
+  }
+
+  dungHoatAnh(name) {
+    return this.animation.stop(name);
+  }
+
+  veHoatAnh(name, x, y, width, height) {
+    return this.animation.draw(name, this.ctx, x, y, width, height);
+  }
+
+  datFPSHoatAnh(name, fps) {
+    return this.animation.setFPS(name, fps);
+  }
+
+  datLapHoatAnh(name, loop) {
+    return this.animation.setLoop(name, loop);
+  }
+
+  hoatAnhKetThuc(name) {
+    return this.animation.isFinished(name);
+  }
+
+  xoaHoatAnh(name) {
+    return this.animation.remove(name);
+  }
+
   createCharacter(x, y, width, height, color = "#ffffff") {
     const values = [x, y, width, height];
 
@@ -668,6 +710,7 @@ export class VietGame2D {
       this.frameId = null;
 
       try {
+        this.animation.update(deltaTime);
         update(deltaTime);
         render(this.ctx);
       } catch (error) {
@@ -702,6 +745,7 @@ export class VietGame2D {
 
     this.stop();
     this.audio.destroy();
+    this.animation.destroy();
     this.image.destroy();
     this.detachKeyboard();
     this.detachMouse();

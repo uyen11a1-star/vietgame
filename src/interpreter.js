@@ -183,6 +183,27 @@ export class Interpreter {
     this.environment.define("luuTrangThaiVe", gameMethod("luuTrangThaiVe", "luuTrangThaiVe"));
     this.environment.define("khoiPhucTrangThaiVe", gameMethod("khoiPhucTrangThaiVe", "khoiPhucTrangThaiVe"));
     this.environment.define("xoaVungVe", gameMethod("xoaVungVe", "xoaVungVe"));
+    this.environment.define("taoHoatAnh", (name, frames, fps, loop) =>
+      gameMethod("taoHoatAnh", "taoHoatAnh")(name, frames, fps, loop));
+    this.environment.define("phatHoatAnh", name =>
+      gameMethod("phatHoatAnh", "phatHoatAnh")(name));
+    this.environment.define("tamDungHoatAnh", name =>
+      gameMethod("tamDungHoatAnh", "tamDungHoatAnh")(name));
+    this.environment.define("tiepTucHoatAnh", name =>
+      gameMethod("tiepTucHoatAnh", "tiepTucHoatAnh")(name));
+    this.environment.define("dungHoatAnh", name =>
+      gameMethod("dungHoatAnh", "dungHoatAnh")(name));
+    this.environment.define("veHoatAnh", (name, x, y, width, height) =>
+      gameMethod("veHoatAnh", "veHoatAnh")(name, x, y, width, height));
+    this.environment.define("datFPSHoatAnh", (name, fps) =>
+      gameMethod("datFPSHoatAnh", "datFPSHoatAnh")(name, fps));
+    this.environment.define("datLapHoatAnh", (name, loop) =>
+      gameMethod("datLapHoatAnh", "datLapHoatAnh")(name, loop));
+    this.environment.define("hoatAnhKetThuc", name =>
+      gameMethod("hoatAnhKetThuc", "hoatAnhKetThuc")(name));
+    this.environment.define("xoaHoatAnh", name =>
+      gameMethod("xoaHoatAnh", "xoaHoatAnh")(name));
+
     this.environment.define("vaCham",
       gameMethod("vaCham", "collides"));
     this.environment.define("dungGame",
