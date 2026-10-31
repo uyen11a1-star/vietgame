@@ -204,6 +204,27 @@ export class Interpreter {
     this.environment.define("xoaHoatAnh", name =>
       gameMethod("xoaHoatAnh", "xoaHoatAnh")(name));
 
+    this.environment.define("taoHeHat", (...args) =>
+      gameMethod("taoHeHat", "taoHeHat")(...args));
+    this.environment.define("phatHeHat", name =>
+      gameMethod("phatHeHat", "phatHeHat")(name));
+    this.environment.define("dungHeHat", name =>
+      gameMethod("dungHeHat", "dungHeHat")(name));
+    this.environment.define("veHeHat", name =>
+      gameMethod("veHeHat", "veHeHat")(name));
+    this.environment.define("datViTriHeHat", (name, x, y) =>
+      gameMethod("datViTriHeHat", "datViTriHeHat")(name, x, y));
+    this.environment.define("datMauHeHat", (name, color) =>
+      gameMethod("datMauHeHat", "datMauHeHat")(name, color));
+    this.environment.define("datTocDoHeHat", (name, speed) =>
+      gameMethod("datTocDoHeHat", "datTocDoHeHat")(name, speed));
+    this.environment.define("heHatKetThuc", name =>
+      gameMethod("heHatKetThuc", "heHatKetThuc")(name));
+    this.environment.define("soHatDangChay", name =>
+      gameMethod("soHatDangChay", "soHatDangChay")(name));
+    this.environment.define("xoaHeHat", name =>
+      gameMethod("xoaHeHat", "xoaHeHat")(name));
+
     this.environment.define("vaCham",
       gameMethod("vaCham", "collides"));
     this.environment.define("dungGame",

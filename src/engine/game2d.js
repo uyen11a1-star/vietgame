@@ -1,6 +1,7 @@
 import { VietGameAudio } from "./audio.js";
 import { VietGameImage } from "./image.js";
 import { VietGameAnimation } from "./animation.js";
+import { VietGameParticle } from "./particle.js";
 
 export class VietGame2D {
   constructor(canvas, options = {}) {
@@ -13,6 +14,7 @@ export class VietGame2D {
     this.audio = new VietGameAudio({ audioFactory: options.audioFactory });
     this.image = new VietGameImage({ imageFactory: options.imageFactory });
     this.animation = new VietGameAnimation(this.image);
+    this.particles = new VietGameParticle();
 
     if (!this.ctx) {
       throw new Error("VietGame: Khong the tao Canvas 2D context.");
@@ -609,6 +611,46 @@ export class VietGame2D {
     return this.animation.remove(name);
   }
 
+  taoHeHat(name, x, y, count, speed, color, size, lifetime, gravity, loop) {
+    return this.particles.create(name, x, y, count, speed, color, size, lifetime, gravity, loop);
+  }
+
+  phatHeHat(name) {
+    return this.particles.play(name);
+  }
+
+  dungHeHat(name) {
+    return this.particles.stop(name);
+  }
+
+  veHeHat(name) {
+    return this.particles.draw(name, this.ctx);
+  }
+
+  datViTriHeHat(name, x, y) {
+    return this.particles.setPosition(name, x, y);
+  }
+
+  datMauHeHat(name, color) {
+    return this.particles.setColor(name, color);
+  }
+
+  datTocDoHeHat(name, speed) {
+    return this.particles.setSpeed(name, speed);
+  }
+
+  heHatKetThuc(name) {
+    return this.particles.isFinished(name);
+  }
+
+  soHatDangChay(name) {
+    return this.particles.count(name);
+  }
+
+  xoaHeHat(name) {
+    return this.particles.remove(name);
+  }
+
   createCharacter(x, y, width, height, color = "#ffffff") {
     const values = [x, y, width, height];
 
@@ -711,6 +753,7 @@ export class VietGame2D {
 
       try {
         this.animation.update(deltaTime);
+        this.particles.update(deltaTime);
         update(deltaTime);
         render(this.ctx);
       } catch (error) {
@@ -746,6 +789,7 @@ export class VietGame2D {
     this.stop();
     this.audio.destroy();
     this.animation.destroy();
+    this.particles.destroy();
     this.image.destroy();
     this.detachKeyboard();
     this.detachMouse();
