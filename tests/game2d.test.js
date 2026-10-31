@@ -696,3 +696,93 @@ test("tu choi doi tuong cam ung khong hop le", () => {
     /cam ung khong hop le/
   );
 });
+
+
+test("unified input system kiem tra cac loai dau vao", () => {
+  const keyboard = createMouseTarget();
+  const mouse = createMouseTarget();
+  const touch = createPointerTarget();
+  const game = new VietGame2D(createCanvas(), {
+    keyboardTarget: keyboard,
+    mouseTarget: mouse,
+    touchTarget: touch
+  });
+
+  keyboard.dispatch("keydown", { key: "Space" });
+  mouse.dispatch("mousedown", { button: 0 });
+  touch.dispatch("pointerdown", {
+    pointerId: 1, pointerType: "touch",
+    clientX: 30, clientY: 40
+  });
+
+  assert.equal(game.isInputDown("key:Space"), true);
+  assert.equal(game.isInputDown("mouse:trai"), true);
+  assert.equal(game.isInputDown("touch"), true);
+  assert.equal(game.isInputDown("key:Enter"), false);
+  assert.equal(game.isInputDown("unknown"), false);
+  assert.equal(game.getInputCount(), 3);
+
+  game.destroy();
+});
+
+test("unified input uu tien toa do cam ung va fallback sang chuot", () => {
+  const mouse = createMouseTarget();
+  const touch = createPointerTarget();
+  const canvas = createCanvas();
+  canvas.getBoundingClientRect = () => ({
+    left: 0, top: 0, width: 800, height: 600
+  });
+
+  const game = new VietGame2D(canvas, {
+    mouseTarget: mouse,
+    touchTarget: touch
+  });
+
+  mouse.dispatch("mousemove", { clientX: 100, clientY: 120 });
+  assert.deepEqual(game.getInputPosition(), { x: 100, y: 120 });
+
+  touch.dispatch("pointerdown", {
+    pointerId: 1, pointerType: "touch",
+    clientX: 30, clientY: 40
+  });
+  assert.deepEqual(game.getInputPosition(), { x: 30, y: 40 });
+
+  touch.dispatch("pointerup", {
+    pointerId: 1, pointerType: "touch",
+    clientX: 30, clientY: 40
+  });
+  assert.deepEqual(game.getInputPosition(), { x: 100, y: 120 });
+
+  game.destroy();
+});
+
+test("unified input dem chinh xac nhieu nut va nhieu ngon tay", () => {
+  const keyboard = createMouseTarget();
+  const mouse = createMouseTarget();
+  const touch = createPointerTarget();
+  const game = new VietGame2D(createCanvas(), {
+    keyboardTarget: keyboard,
+    mouseTarget: mouse,
+    touchTarget: touch
+  });
+
+  keyboard.dispatch("keydown", { key: "a" });
+  keyboard.dispatch("keydown", { key: "b" });
+  mouse.dispatch("mousedown", { button: 0 });
+  touch.dispatch("pointerdown", {
+    pointerId: 1, pointerType: "touch", clientX: 1, clientY: 1
+  });
+  touch.dispatch("pointerdown", {
+    pointerId: 2, pointerType: "touch", clientX: 2, clientY: 2
+  });
+
+  assert.equal(game.getInputCount(), 5);
+
+  keyboard.dispatch("keyup", { key: "a" });
+  touch.dispatch("pointerup", {
+    pointerId: 1, pointerType: "touch", clientX: 1, clientY: 1
+  });
+
+  assert.equal(game.getInputCount(), 3);
+  game.destroy();
+});

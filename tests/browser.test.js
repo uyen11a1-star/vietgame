@@ -397,3 +397,73 @@ in(soNgonTayDangCham())
   assert.equal(result.game.isTouching(), false);
   result.game.destroy();
 });
+
+
+test("browser tich hop unified input system", () => {
+  const keyboard = createMouseTarget();
+  const mouse = createMouseTarget();
+  const touch = createBrowserPointerTarget();
+  const output = [];
+
+  const result = runVietGame(`
+ham capNhat(dt):
+    in(dauVaoDangNhan("key:Space"))
+    in(dauVaoDangNhan("mouse:trai"))
+    in(dauVaoDangNhan("touch"))
+    in(viTriDauVaoX())
+    in(viTriDauVaoY())
+    in(soDauVaoDangNhan())
+
+ham ve():
+    in("ve")
+`, createCanvas(), {
+    keyboardTarget: keyboard,
+    mouseTarget: mouse,
+    touchTarget: touch,
+    requestAnimationFrame: () => 1,
+    cancelAnimationFrame: () => {},
+    onOutput: line => output.push(line)
+  });
+
+  keyboard.dispatch("keydown", { key: "Space" });
+  mouse.dispatch("mousedown", { button: 0 });
+  touch.dispatch("pointerdown", {
+    pointerId: 1, pointerType: "touch",
+    clientX: 30, clientY: 40
+  });
+
+  result.game.updateCallback(0.016);
+
+  assert.deepEqual(output, [
+    "that", "that", "that", "30", "40", "3"
+  ]);
+
+  result.game.destroy();
+});
+
+test("unified input duoc semantic analyzer kiem tra kieu", () => {
+  assert.throws(
+    () => runVietGame(
+      "in(dauVaoDangNhan(123))",
+      createCanvas()
+    ),
+    /VG3015/
+  );
+});
+
+test("unified input hoat dong khi khong co thiet bi dau vao", () => {
+  const output = [];
+  const result = runVietGame(`
+in(dauVaoDangNhan("key:Space"))
+in(dauVaoDangNhan("mouse:trai"))
+in(dauVaoDangNhan("touch"))
+in(viTriDauVaoX())
+in(viTriDauVaoY())
+in(soDauVaoDangNhan())
+`, createCanvas(), {
+    onOutput: line => output.push(line)
+  });
+
+  assert.deepEqual(output, ["sai", "sai", "sai", "0", "0", "0"]);
+  result.game.destroy();
+});

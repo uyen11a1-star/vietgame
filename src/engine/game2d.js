@@ -184,6 +184,38 @@ export class VietGame2D {
     return this.activeTouches.size;
   }
 
+  isInputDown(input) {
+    if (typeof input !== "string") return false;
+
+    if (input === "touch") return this.isTouching();
+
+    if (input.startsWith("key:")) {
+      return this.isKeyDown(input.slice(4));
+    }
+
+    if (input.startsWith("mouse:")) {
+      return this.isMouseDown(input.slice(6));
+    }
+
+    return false;
+  }
+
+  getInputPosition() {
+    if (this.isTouching()) {
+      return this.getTouchPosition();
+    }
+
+    return this.getMousePosition();
+  }
+
+  getInputCount() {
+    return (
+      this.pressedKeys.size +
+      this.pressedMouseButtons.size +
+      this.activeTouches.size
+    );
+  }
+
   attachMouse(target) {
     if (this.destroyed) {
       throw new Error("VietGame: Game da bi huy.");
