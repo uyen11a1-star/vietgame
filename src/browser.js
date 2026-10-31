@@ -37,6 +37,23 @@ export function runVietGame(source, canvas, options = {}) {
 
   const result = interpreter.interpret(program);
 
+  const hasUpdate = interpreter.hasFunction("capNhat");
+  const hasRender = interpreter.hasFunction("ve");
+
+  if (hasUpdate !== hasRender) {
+    game.destroy();
+    throw new Error(
+      "VietGame: Can khai bao ca ham capNhat(dt) va ham ve()."
+    );
+  }
+
+  if (hasUpdate && hasRender) {
+    game.start(
+      deltaTime => interpreter.callFunction("capNhat", [deltaTime]),
+      () => interpreter.callFunction("ve")
+    );
+  }
+
   return {
     title: interpreter.gameTitle,
     output: result.output,

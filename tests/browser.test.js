@@ -136,3 +136,75 @@ test("vaCham kiem tra kieu doi tuong", () => {
     /VG3015/
   );
 });
+
+
+function createBrowserFrameScheduler() {
+  let nextId = 1;
+  const callbacks = new Map();
+
+  return {
+    callbacks,
+    requestAnimationFrame(callback) {
+      const id = nextId++;
+      callbacks.set(id, callback);
+      return id;
+    },
+    cancelAnimationFrame(id) {
+      callbacks.delete(id);
+    },
+    step(time) {
+      const entry = callbacks.entries().next().value;
+      if (!entry) throw new Error("Khong co khung hinh dang cho.");
+      const [id, callback] = entry;
+      callbacks.delete(id);
+      callback(time);
+    }
+  };
+}
+
+test("browser tu dong chay capNhat va ve trong game loop", () => {
+  const canvas = createCanvas();
+  const scheduler = createBrowserFrameScheduler();
+
+  const result = runVietGame(`
+bien nguoiChoi = taoNhanVat(10, 10, 20, 20, "#ff0000")
+
+ham capNhat(dt):
+    diChuyen(nguoiChoi, 200 * dt, 0)
+
+ham ve():
+    xoaManHinh("#111111")
+    veNhanVat(nguoiChoi)
+`, canvas, {
+    requestAnimationFrame: scheduler.requestAnimationFrame.bind(scheduler),
+    cancelAnimationFrame: scheduler.cancelAnimationFrame.bind(scheduler)
+  });
+
+  assert.equal(result.game.running, true);
+
+  scheduler.step(1000);
+  scheduler.step(1050);
+
+  assert.ok(canvas.calls.some(call =>
+    call[0] === "fillRect" &&
+    call[1] === 20 &&
+    call[2] === 10
+  ));
+
+  result.game.destroy();
+  assert.equal(result.game.running, false);
+});
+
+test("browser bao loi neu chi khai bao mot callback game loop", () => {
+  const scheduler = createBrowserFrameScheduler();
+
+  assert.throws(() => runVietGame(`
+ham capNhat(dt):
+    in("dang cap nhat")
+`, createCanvas(), {
+    requestAnimationFrame: scheduler.requestAnimationFrame.bind(scheduler),
+    cancelAnimationFrame: scheduler.cancelAnimationFrame.bind(scheduler)
+  }), /ca ham capNhat/);
+
+  assert.equal(scheduler.callbacks.size, 0);
+});

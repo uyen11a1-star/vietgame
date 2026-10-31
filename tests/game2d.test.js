@@ -275,3 +275,100 @@ test("tu choi hinh chu nhat khong hop le", () => {
     { x: 0, y: 0, width: 10, height: 10 }
   ), /khong hop le/);
 });
+
+
+function createFrameScheduler() {
+  let nextId = 1;
+  const callbacks = new Map();
+  const cancelled = [];
+
+  return {
+    callbacks,
+    cancelled,
+    requestAnimationFrame(callback) {
+      const id = nextId++;
+      callbacks.set(id, callback);
+      return id;
+    },
+    cancelAnimationFrame(id) {
+      cancelled.push(id);
+      callbacks.delete(id);
+    },
+    step(time) {
+      const entry = callbacks.entries().next().value;
+      if (!entry) throw new Error("Khong co khung hinh dang cho.");
+      const [id, callback] = entry;
+      callbacks.delete(id);
+      callback(time);
+    }
+  };
+}
+
+test("game loop cap nhat va ve lien tuc", () => {
+  const scheduler = createFrameScheduler();
+  const game = new VietGame2D(createCanvas(), {
+    requestAnimationFrame: scheduler.requestAnimationFrame.bind(scheduler),
+    cancelAnimationFrame: scheduler.cancelAnimationFrame.bind(scheduler)
+  });
+  const updates = [];
+  let renders = 0;
+
+  game.start(dt => updates.push(dt), () => renders++);
+
+  assert.equal(game.running, true);
+  scheduler.step(1000);
+  scheduler.step(1050);
+
+  assert.deepEqual(updates, [0, 0.05]);
+  assert.equal(renders, 2);
+  assert.equal(scheduler.callbacks.size, 1);
+
+  game.stop();
+  assert.equal(game.running, false);
+  assert.equal(scheduler.callbacks.size, 0);
+});
+
+test("game loop gioi han delta time toi da 0.1 giay", () => {
+  const scheduler = createFrameScheduler();
+  const game = new VietGame2D(createCanvas(), {
+    requestAnimationFrame: scheduler.requestAnimationFrame.bind(scheduler),
+    cancelAnimationFrame: scheduler.cancelAnimationFrame.bind(scheduler)
+  });
+  const updates = [];
+
+  game.start(dt => updates.push(dt), () => {});
+  scheduler.step(1000);
+  scheduler.step(1500);
+
+  assert.deepEqual(updates, [0, 0.1]);
+  game.stop();
+});
+
+test("game loop tu dung khi callback gap loi", () => {
+  const scheduler = createFrameScheduler();
+  const game = new VietGame2D(createCanvas(), {
+    requestAnimationFrame: scheduler.requestAnimationFrame.bind(scheduler),
+    cancelAnimationFrame: scheduler.cancelAnimationFrame.bind(scheduler)
+  });
+
+  game.start(() => {
+    throw new Error("Loi cap nhat");
+  }, () => {});
+
+  assert.throws(() => scheduler.step(1000), /Loi cap nhat/);
+  assert.equal(game.running, false);
+  assert.equal(scheduler.callbacks.size, 0);
+});
+
+test("game loop tu choi neu thieu ham callback", () => {
+  const game = new VietGame2D(createCanvas());
+  assert.throws(() => game.start(() => {}, null), /ham update va render/);
+});
+
+test("game loop tu choi khi khong co bo len lich", () => {
+  const game = new VietGame2D(createCanvas(), {
+    requestAnimationFrame: null,
+    cancelAnimationFrame: null
+  });
+  assert.throws(() => game.start(() => {}, () => {}), /requestAnimationFrame/);
+});

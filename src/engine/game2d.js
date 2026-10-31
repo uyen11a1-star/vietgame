@@ -16,7 +16,11 @@ export class VietGame2D {
     this.background = options.background ?? "#111111";
     this.running = false;
     this.frameId = null;
-    this.lastTime = 0;
+    this.lastTime = null;
+    this.requestFrame = options.requestAnimationFrame ??
+      globalThis.requestAnimationFrame?.bind(globalThis);
+    this.cancelFrame = options.cancelAnimationFrame ??
+      globalThis.cancelAnimationFrame?.bind(globalThis);
 
     this.pressedKeys = new Set();
     this.keyboardTarget = null;
@@ -174,25 +178,38 @@ export class VietGame2D {
       throw new Error("VietGame: Can ham update va render.");
     }
 
+    if (typeof this.requestFrame !== "function" ||
+        typeof this.cancelFrame !== "function") {
+      throw new Error("VietGame: Trinh duyet khong ho tro requestAnimationFrame.");
+    }
+
     this.running = true;
-    this.lastTime = 0;
+    this.lastTime = null;
 
     const loop = (time) => {
       if (!this.running) return;
 
-      const deltaTime = this.lastTime === 0
+      const deltaTime = this.lastTime === null
         ? 0
-        : Math.min((time - this.lastTime) / 1000, 0.1);
+        : Math.min(Math.max((time - this.lastTime) / 1000, 0), 0.1);
 
       this.lastTime = time;
+      this.frameId = null;
 
-      update(deltaTime);
-      render(this.ctx);
+      try {
+        update(deltaTime);
+        render(this.ctx);
+      } catch (error) {
+        this.stop();
+        throw error;
+      }
 
-      this.frameId = requestAnimationFrame(loop);
+      if (this.running) {
+        this.frameId = this.requestFrame(loop);
+      }
     };
 
-    this.frameId = requestAnimationFrame(loop);
+    this.frameId = this.requestFrame(loop);
   }
 
   destroy() {
@@ -204,8 +221,10 @@ export class VietGame2D {
     this.running = false;
 
     if (this.frameId !== null) {
-      cancelAnimationFrame(this.frameId);
+      this.cancelFrame?.(this.frameId);
       this.frameId = null;
     }
+
+    this.lastTime = null;
   }
 }

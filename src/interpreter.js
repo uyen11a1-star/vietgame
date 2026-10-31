@@ -123,6 +123,18 @@ export class Interpreter {
       gameMethod("vaCham", "collides"));
   }
 
+  hasFunction(name) {
+    return typeof this.environment.values.get(name) === "function";
+  }
+
+  callFunction(name, args = []) {
+    if (!this.hasFunction(name)) {
+      throw new RuntimeError(`Khong tim thay ham '${name}'.`);
+    }
+
+    return this.environment.values.get(name)(...args);
+  }
+
   interpret(program) {
     this.output = [];
     this.callDepth = 0;
