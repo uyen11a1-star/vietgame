@@ -50,6 +50,8 @@ export class Interpreter {
     this.output = [];
     this.onOutput = options.onOutput ?? null;
     this.maxLoopIterations = options.maxLoopIterations ?? 100000;
+    this.maxCallDepth = options.maxCallDepth ?? 256;
+    this.callDepth = 0;
     this.environment = new Environment();
 
     this.environment.define("in", (...args) => {
@@ -62,9 +64,17 @@ export class Interpreter {
 
   interpret(program) {
     this.output = [];
+    this.callDepth = 0;
 
-    for (const statement of program.body ?? []) {
-      this.execute(statement);
+    try {
+      for (const statement of program.body ?? []) {
+        this.execute(statement);
+      }
+    } catch (error) {
+      if (error instanceof ReturnSignal) {
+        throw new RuntimeError("Lenh 'traVe' khong the dung ben ngoai ham.");
+      }
+      throw error;
     }
 
     return { output: [...this.output] };
@@ -107,22 +117,34 @@ export class Interpreter {
             );
           }
 
-          const local = new Environment(closure);
-
-          declaration.params.forEach((param, index) => {
-            local.define(param.name, args[index]);
-          });
-
-          try {
-            this.executeBlock(declaration.body, local);
-          } catch (error) {
-            if (error instanceof ReturnSignal) {
-              return error.value;
-            }
-            throw error;
+          if (this.callDepth >= this.maxCallDepth) {
+            throw new RuntimeError(
+              `Ham '${node.name}' vuot qua gioi han do sau goi ham (${this.maxCallDepth}).`
+            );
           }
 
-          return null;
+          this.callDepth++;
+
+          try {
+            const local = new Environment(closure);
+
+            declaration.params.forEach((param, index) => {
+              local.define(param.name, args[index]);
+            });
+
+            try {
+              this.executeBlock(declaration.body, local);
+            } catch (error) {
+              if (error instanceof ReturnSignal) {
+                return error.value;
+              }
+              throw error;
+            }
+
+            return null;
+          } finally {
+            this.callDepth--;
+          }
         });
 
         return;

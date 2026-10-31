@@ -30,16 +30,25 @@ export class SemanticAnalyzer {
   analyze(program) {
     this.diagnostics = [];
     this.scope = new Scope();
-    // Predeclare functions to allow calling a function before its definition.
-    for (const node of program.body ?? []) {
-      if (node.type === "FunctionDeclaration") {
-        if (!this.scope.define(node.name, { kind: "function", params: node.params, returnType: node.returnType ?? "khong_ro" })) {
-          this.report("VG3001", `Ten '${node.name}' da duoc khai bao trong pham vi nay.`);
-        }
+    this.visitStatements(program.body ?? []);
+    return { type: "SemanticResult", ok: this.diagnostics.length === 0, diagnostics: this.diagnostics };
+  }
+
+  visitStatements(statements) {
+    // Dang ky truoc cac ham trong pham vi hien tai.
+    for (const node of statements) {
+      if (node.type !== "FunctionDeclaration") continue;
+
+      if (!this.scope.define(node.name, {
+        kind: "function",
+        params: node.params,
+        returnType: node.returnType ?? "khong_ro"
+      })) {
+        this.report("VG3001", `Ten '${node.name}' da duoc khai bao trong pham vi nay.`);
       }
     }
-    for (const node of program.body ?? []) this.visitStatement(node);
-    return { type: "SemanticResult", ok: this.diagnostics.length === 0, diagnostics: this.diagnostics };
+
+    for (const node of statements) this.visitStatement(node);
   }
 
   report(code, message) { this.diagnostics.push({ code, message }); }
@@ -90,7 +99,7 @@ export class SemanticAnalyzer {
           this.define(param.name, { kind: "variable", type: param.declaredType ?? "khong_ro", mutable: true });
         }
         this.functionStack.push({ name: node.name, returnType: node.returnType ?? "khong_ro" });
-        for (const statement of node.body) this.visitStatement(statement);
+        this.visitStatements(node.body);
         this.functionStack.pop();
         this.scope = previousScope;
         if (symbol) symbol.returnType = node.returnType ?? "khong_ro";
@@ -98,28 +107,28 @@ export class SemanticAnalyzer {
       }
       case "ClassDeclaration":
         this.define(node.name, { kind: "class", type: node.name });
-        this.withScope(() => node.body.forEach(s => this.visitStatement(s)));
+        this.withScope(() => this.visitStatements(node.body));
         return;
       case "IfStatement":
         this.requireBoolean(this.visitExpression(node.condition), "dieu kien neu");
-        this.withScope(() => node.thenBranch.forEach(s => this.visitStatement(s)));
-        if (node.elseBranch) this.withScope(() => node.elseBranch.forEach(s => this.visitStatement(s)));
+        this.withScope(() => this.visitStatements(node.thenBranch));
+        if (node.elseBranch) this.withScope(() => this.visitStatements(node.elseBranch));
         return;
       case "WhileStatement":
         this.requireBoolean(this.visitExpression(node.condition), "dieu kien trongKhi");
-        this.withScope(() => node.body.forEach(s => this.visitStatement(s)));
+        this.withScope(() => this.visitStatements(node.body));
         return;
       case "RepeatStatement": {
         const t = this.visitExpression(node.count);
         if (t !== "so" && t !== "thuc" && t !== "khong_ro") this.report("VG3005", `So lan lap phai la so, khong phai '${t}'.`);
-        this.withScope(() => node.body.forEach(s => this.visitStatement(s)));
+        this.withScope(() => this.visitStatements(node.body));
         return;
       }
       case "ForEachStatement":
         this.visitExpression(node.iterable);
         this.withScope(() => {
           this.define(node.variable, { kind: "variable", type: "khong_ro", mutable: false });
-          node.body.forEach(s => this.visitStatement(s));
+          this.visitStatements(node.body);
         });
         return;
       case "ReturnStatement": {
