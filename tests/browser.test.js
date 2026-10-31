@@ -467,3 +467,55 @@ in(soDauVaoDangNhan())
   assert.deepEqual(output, ["sai", "sai", "sai", "0", "0", "0"]);
   result.game.destroy();
 });
+
+
+test("browser tich hop Audio System", () => {
+  const created = [];
+  const output = [];
+
+  const result = runVietGame(`
+bien amThanh = phatAmThanh("click.wav")
+bien nhac = phatNhacNen("theme.mp3")
+datAmLuong(0.5)
+in("audio-ready")
+dungAmThanh()
+`, createCanvas(), {
+    audioFactory(src) {
+      const item = {
+        src,
+        loop: false,
+        volume: 1,
+        currentTime: 0,
+        paused: false,
+        play() {
+          this.paused = false;
+          return Promise.resolve();
+        },
+        pause() {
+          this.paused = true;
+        }
+      };
+      created.push(item);
+      return item;
+    },
+    onOutput: line => output.push(line)
+  });
+
+  assert.deepEqual(output, ["audio-ready"]);
+  assert.equal(created.length, 2);
+  assert.equal(created[0].loop, false);
+  assert.equal(created[1].loop, true);
+  assert.equal(created[0].volume, 0.5);
+  assert.equal(created[1].volume, 0.5);
+  assert.equal(created[0].paused, true);
+  assert.equal(created[1].paused, true);
+
+  result.game.destroy();
+});
+
+test("Audio System duoc semantic analyzer kiem tra kieu", () => {
+  assert.throws(
+    () => runVietGame('datAmLuong("lon")', createCanvas()),
+    /VG3015/
+  );
+});
